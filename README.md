@@ -15,11 +15,18 @@ A lightweight speech-to-text application for Raspberry Pi using OpenAI's Whisper
 
 ## Requirements
 
+### Raspberry Pi
 - Raspberry Pi 4 or 5 (recommended: 4GB+ RAM)
 - Raspberry Pi OS with Desktop
 - USB Microphone
 - Python 3.7+
 - Internet connection (for initial setup)
+
+### Other Platforms (Mac/Windows/Linux)
+- Any modern computer with microphone
+- Python 3.7+
+- macOS 10.14+, Windows 10+, or Linux with GUI
+- Use `whisper_transcribe_universal.py` for cross-platform support
 
 ## Quick Installation
 
