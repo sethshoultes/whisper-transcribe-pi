@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Whisper models cache
+~/.cache/whisper/
+
+# Audio files
+*.wav
+*.mp3
+*.m4a
+*.flac
+
+# Logs
+*.log
+/tmp/whisper_debug.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local configuration
+config.local.json
+settings.local.json
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Documentation build
+docs/_build/
+
+# Test coverage
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
