@@ -1522,10 +1522,15 @@ class SettingsWindow(ctk.CTkToplevel):
         else:
             self.parent.attributes("-topmost", False)
         
-        # Apply opacity
+        # Apply opacity (may not work on Wayland/labwc)
         try:
-            self.parent.attributes("-alpha", self.opacity_slider.get())
-        except:
+            opacity = self.opacity_slider.get()
+            self.parent.attributes("-alpha", opacity)
+            # Check if it actually worked
+            if self.parent.attributes("-alpha") != opacity:
+                logging.info("Window opacity not supported on this window manager (Wayland/labwc)")
+        except Exception as e:
+            logging.debug(f"Opacity setting not supported: {e}")
             pass
         
         # Check if model changed and reload if needed
