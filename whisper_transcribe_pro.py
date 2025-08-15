@@ -847,6 +847,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         self.parent = parent
         self.settings = settings
+        self.test_expanded = False  # Initialize test panel state
         
         self.title("Settings")
         
@@ -1027,7 +1028,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.test_waveform = Canvas(
             self.test_frame,
             height=60,
-            bg="#212121" if self.parent.theme == "dark" else "#f0f0f0",
+            bg="#212121" if self.settings.settings.get("theme", "dark") == "dark" else "#f0f0f0",
             highlightthickness=0
         )
         self.test_waveform.pack(fill="x", padx=20, pady=5)
@@ -1563,7 +1564,7 @@ class SettingsWindow(ctk.CTkToplevel):
             # Draw center line
             self.test_waveform.create_line(
                 0, mid_y, canvas_width, mid_y,
-                fill="#444444" if self.parent.theme == "dark" else "#cccccc",
+                fill="#444444" if self.settings.settings.get("theme", "dark") == "dark" else "#cccccc",
                 dash=(3, 3)
             )
             
@@ -1577,7 +1578,7 @@ class SettingsWindow(ctk.CTkToplevel):
             if len(points) >= 4:
                 self.test_waveform.create_line(
                     points,
-                    fill="#00ff00" if self.parent.theme == "dark" else "#0080ff",
+                    fill="#00ff00" if self.settings.settings.get("theme", "dark") == "dark" else "#0080ff",
                     width=2
                 )
         except Exception as e:
