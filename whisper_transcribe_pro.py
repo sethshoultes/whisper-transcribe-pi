@@ -651,6 +651,11 @@ class WhisperTranscribePro(ctk.CTk):
     
     def transcribe_audio(self, audio_data):
         """Transcribe audio using Whisper"""
+        # Check if model is loaded
+        if self.model is None:
+            self.update_status("Model not loaded", "red")
+            return
+            
         self.processing = True
         
         try:
@@ -669,10 +674,11 @@ class WhisperTranscribePro(ctk.CTk):
                     audio_int16 = (audio_data * 32767).astype(np.int16)
                     wf.writeframes(audio_int16.tobytes())
                 
-                # Transcribe
+                # Transcribe with current settings
+                language = self.settings.settings.get("language", "en")
                 result = self.model.transcribe(
                     tmp.name,
-                    language=self.settings.settings["language"],
+                    language=language,
                     fp16=False
                 )
                 
@@ -1487,12 +1493,46 @@ class SettingsWindow(ctk.CTkToplevel):
         except:
             pass
         
-        self.parent.show_notification("✅ Settings saved successfully!")
+        # Check if model changed and reload if needed
+        current_model = getattr(self.parent.model, 'model_name', 'tiny') if self.parent.model else 'tiny'
+        if model != current_model:
+            self.parent.show_notification(f"🔄 Loading {model} model...")
+            # Reload model in background thread
+            def reload_model():
+                try:
+                    self.parent.model = whisper.load_model(model)
+                    self.parent.ui_queue.put({
+                        'type': 'status',
+                        'text': '● Ready',
+                        'color': 'green'
+                    })
+                    logging.info(f"Reloaded Whisper model: {model}")
+                except Exception as e:
+                    logging.error(f"Failed to reload model: {e}")
+                    self.parent.ui_queue.put({
+                        'type': 'status',
+                        'text': 'Model reload failed',
+                        'color': 'red'
+                    })
+            
+            threading.Thread(target=reload_model, daemon=True).start()
         
-        # Note about model change
-        if model != self.parent.settings.settings.get("model", "tiny"):
-            self.parent.show_notification("⚠️ Restart app to load new model")
+        # Check if audio device changed
+        if device_text and device_text != self.parent.settings.settings.get("audio_device"):
+            try:
+                import sounddevice as sd
+                # Extract device index
+                device_idx = int(device_text.split(":")[0])
+                self.parent.device_index = device_idx
+                # Update sample rate for new device
+                devices = sd.query_devices()
+                if device_idx < len(devices):
+                    self.parent.device_sample_rate = int(devices[device_idx]['default_samplerate'])
+                    logging.info(f"Switched to audio device: {device_text}")
+            except Exception as e:
+                logging.error(f"Failed to switch audio device: {e}")
         
+        self.parent.show_notification("✅ Settings applied immediately!")
         self.destroy()
 
 def main():
