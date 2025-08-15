@@ -31,8 +31,19 @@ ctk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 # Set up logging
+# Check if debug logging is enabled in settings
+settings_path = os.path.expanduser("~/.whisper_transcribe_pro.json")
+debug_enabled = False
+if os.path.exists(settings_path):
+    try:
+        with open(settings_path, 'r') as f:
+            settings = json.load(f)
+            debug_enabled = settings.get('debug_logging', False)
+    except:
+        pass
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG if debug_enabled else logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
         logging.FileHandler('/tmp/whisper_pro.log'),
@@ -1378,7 +1389,7 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=12)
         ).pack(anchor="w", padx=10, pady=5)
         
-        self.debug_var = ctk.BooleanVar(value=False)
+        self.debug_var = ctk.BooleanVar(value=self.settings.settings.get("debug_logging", False))
         debug_check = ctk.CTkCheckBox(
             debug_frame,
             text="Enable Debug Logging",
@@ -1665,6 +1676,14 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Save to file
         self.settings.save_settings()
+        
+        # Apply debug logging level
+        if self.debug_var.get():
+            logging.getLogger().setLevel(logging.DEBUG)
+            logging.info("Debug logging enabled")
+        else:
+            logging.getLogger().setLevel(logging.INFO)
+            logging.info("Debug logging disabled")
         
         # Apply changes
         self.parent.apply_theme()
