@@ -2,16 +2,19 @@
 
 A lightweight speech-to-text application for Raspberry Pi using OpenAI's Whisper model. Features a simple GUI interface and clipboard integration for easy transcription.
 
-![Whisper Transcribe Screenshot](screenshots/app.png)
+## Whisper Transcribe Screenshots
+<img width="598" height="524" alt="whisper-1" src="https://github.com/user-attachments/assets/e00e2f21-e5f1-45ee-8c88-d99ab1b5cc0b" />
+
+<img width="603" height="524" alt="whisper-2" src="https://github.com/user-attachments/assets/f0991feb-367e-487b-92af-519f3d88063e" />
 
 ## Features
 
-- 🎤 **Real-time Speech Recognition** - Click to record, automatic transcription
-- 📋 **Clipboard Integration** - Transcribed text automatically copied to clipboard
-- 🖥️ **Floating Window** - Always-on-top window for easy access
-- ⌨️ **Keyboard Shortcuts** - Press 'R' or spacebar to start recording
-- 📝 **Transcription History** - View and copy previous transcriptions
-- 🔧 **USB Microphone Support** - Automatic detection and configuration
+- **Real-time Speech Recognition** - Click to record, automatic transcription
+- **Clipboard Integration** - Transcribed text automatically copied to clipboard
+- **Floating Window** - Always-on-top window for easy access
+- **Keyboard Shortcuts** - Press 'R' or spacebar to start recording
+- **Transcription History** - View and copy previous transcriptions
+- **USB Microphone Support** - Automatic detection and configuration
 
 ## Requirements
 
