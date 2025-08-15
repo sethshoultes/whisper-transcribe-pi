@@ -887,9 +887,16 @@ class SettingsWindow(ctk.CTkToplevel):
     def create_settings_ui(self):
         """Create settings interface"""
         
-        # Main container frame
+        # FIRST: Create bottom button frame (must be created first to reserve space)
+        button_frame = ctk.CTkFrame(self)
+        button_frame.pack(side="bottom", fill="x", padx=15, pady=10)
+        
+        # Add buttons to the frame
+        self._create_bottom_buttons(button_frame)
+        
+        # THEN: Create main content area that will fill remaining space
         main_container = ctk.CTkFrame(self)
-        main_container.pack(fill="both", expand=True)
+        main_container.pack(fill="both", expand=True, padx=10, pady=(10, 0))
         
         # Title
         title_label = ctk.CTkLabel(
@@ -897,15 +904,11 @@ class SettingsWindow(ctk.CTkToplevel):
             text="⚙️ Settings",
             font=ctk.CTkFont(size=20, weight="bold")
         )
-        title_label.pack(pady=(10, 5))
-        
-        # Tabs container with controlled height
-        tabs_container = ctk.CTkFrame(main_container)
-        tabs_container.pack(fill="both", expand=True, padx=15, pady=(5, 0))
+        title_label.pack(pady=(5, 10))
         
         # Tabs for different settings categories
-        self.tabview = ctk.CTkTabview(tabs_container)
-        self.tabview.pack(fill="both", expand=True)
+        self.tabview = ctk.CTkTabview(main_container)
+        self.tabview.pack(fill="both", expand=True, padx=5)
         
         # Create tabs
         self.tabview.add("🎤 Audio")
@@ -915,7 +918,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Audio Settings Tab
         audio_tab = self.tabview.tab("🎤 Audio")
-        audio_frame = ctk.CTkScrollableFrame(audio_tab, height=280)
+        audio_frame = ctk.CTkScrollableFrame(audio_tab, height=250)
         audio_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Enable mouse wheel scrolling
@@ -1010,7 +1013,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Transcription Settings Tab
         trans_tab = self.tabview.tab("💬 Transcription")
-        trans_frame = ctk.CTkScrollableFrame(trans_tab, height=280)
+        trans_frame = ctk.CTkScrollableFrame(trans_tab, height=250)
         trans_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Enable mouse wheel scrolling
@@ -1117,7 +1120,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Interface Settings Tab
         ui_tab = self.tabview.tab("🎨 Interface")
-        ui_frame = ctk.CTkScrollableFrame(ui_tab, height=280)
+        ui_frame = ctk.CTkScrollableFrame(ui_tab, height=250)
         ui_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Enable mouse wheel scrolling
@@ -1244,7 +1247,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Advanced Settings Tab
         adv_tab = self.tabview.tab("⚡ Advanced")
-        adv_frame = ctk.CTkScrollableFrame(adv_tab, height=280)
+        adv_frame = ctk.CTkScrollableFrame(adv_tab, height=250)
         adv_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Enable mouse wheel scrolling
@@ -1304,9 +1307,8 @@ class SettingsWindow(ctk.CTkToplevel):
             height=30
         ).pack(anchor="w", padx=30, pady=5)
         
-        # Save/Cancel buttons - place at bottom with fixed position
-        button_frame = ctk.CTkFrame(self)
-        button_frame.pack(side="bottom", fill="x", padx=15, pady=15)
+    def _create_bottom_buttons(self, button_frame):
+        """Create the bottom button row"""
         button_frame.grid_columnconfigure((0, 1, 2), weight=1)
         
         ctk.CTkButton(
@@ -1314,7 +1316,7 @@ class SettingsWindow(ctk.CTkToplevel):
             text="💾 Save Settings",
             command=self.save_settings,
             width=150,
-            height=40,
+            height=35,
             font=ctk.CTkFont(size=13, weight="bold"),
             fg_color="green",
             hover_color="darkgreen"
@@ -1325,7 +1327,7 @@ class SettingsWindow(ctk.CTkToplevel):
             text="🔄 Reset Defaults",
             command=self.reset_defaults,
             width=150,
-            height=40,
+            height=35,
             font=ctk.CTkFont(size=13)
         ).grid(row=0, column=1, padx=5)
         
@@ -1334,7 +1336,7 @@ class SettingsWindow(ctk.CTkToplevel):
             text="❌ Cancel",
             command=self.destroy,
             width=150,
-            height=40,
+            height=35,
             font=ctk.CTkFont(size=13)
         ).grid(row=0, column=2, padx=5, sticky="w")
     
