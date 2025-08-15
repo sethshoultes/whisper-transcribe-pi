@@ -824,13 +824,24 @@ class SettingsWindow(ctk.CTkToplevel):
         self.settings = settings
         
         self.title("Settings")
-        self.geometry("600x650")
+        
+        # Make window smaller and fit screen better
+        screen_height = self.winfo_screenheight()
+        window_height = min(500, int(screen_height * 0.7))  # Max 70% of screen height
+        window_width = 650
+        
+        self.geometry(f"{window_width}x{window_height}")
+        self.minsize(600, 400)
+        self.maxsize(800, int(screen_height * 0.9))
+        
+        # Allow resizing
+        self.resizable(True, True)
         
         # Center the window
         self.update_idletasks()
-        x = (self.winfo_screenwidth() // 2) - (600 // 2)
-        y = (self.winfo_screenheight() // 2) - (650 // 2)
-        self.geometry(f"600x650+{x}+{y}")
+        x = (self.winfo_screenwidth() // 2) - (window_width // 2)
+        y = (self.winfo_screenheight() // 2) - (window_height // 2)
+        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
         
         # Make modal
         self.transient(parent)
@@ -876,7 +887,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Audio Settings Tab
         audio_tab = self.tabview.tab("🎤 Audio")
-        audio_frame = ctk.CTkScrollableFrame(audio_tab, height=400)
+        audio_frame = ctk.CTkScrollableFrame(audio_tab, height=280)
         audio_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         ctk.CTkLabel(
@@ -968,7 +979,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Transcription Settings Tab
         trans_tab = self.tabview.tab("💬 Transcription")
-        trans_frame = ctk.CTkScrollableFrame(trans_tab, height=400)
+        trans_frame = ctk.CTkScrollableFrame(trans_tab, height=280)
         trans_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         ctk.CTkLabel(
@@ -1072,7 +1083,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Interface Settings Tab
         ui_tab = self.tabview.tab("🎨 Interface")
-        ui_frame = ctk.CTkScrollableFrame(ui_tab, height=400)
+        ui_frame = ctk.CTkScrollableFrame(ui_tab, height=280)
         ui_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         ctk.CTkLabel(
@@ -1196,7 +1207,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Advanced Settings Tab
         adv_tab = self.tabview.tab("⚡ Advanced")
-        adv_frame = ctk.CTkScrollableFrame(adv_tab, height=400)
+        adv_frame = ctk.CTkScrollableFrame(adv_tab, height=280)
         adv_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         ctk.CTkLabel(
