@@ -23,6 +23,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 import customtkinter as ctk
 from PIL import Image, ImageDraw
+from scipy import signal
+from scipy.signal import butter, lfilter
 
 # Configure appearance
 ctk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -45,35 +47,127 @@ class AudioVisualizer:
         self.width = canvas_width
         self.height = canvas_height
         self.waveform_data = np.zeros(100)
+        self.canvas = None  # Will be set by the main app
         
-    def update(self, audio_data):
-        """Update waveform data with new audio"""
-        if len(audio_data) > 0:
-            # Downsample for visualization
-            chunk_size = len(audio_data) // 100
-            if chunk_size > 0:
-                downsampled = np.array([
-                    np.abs(audio_data[i:i+chunk_size]).mean() 
-                    for i in range(0, len(audio_data)-chunk_size, chunk_size)
-                ])[:100]
-                self.waveform_data = downsampled
+    def set_canvas(self, canvas):
+        """Set the tkinter canvas for drawing"""
+        self.canvas = canvas
+        
+    def update_level(self, rms_value):
+        """Update visualization with audio level"""
+        if self.canvas is not None:
+            try:
+                # Add to rolling buffer
+                if not hasattr(self, 'rms_history'):
+                    self.rms_history = []
+                    
+                self.rms_history.append(rms_value)
+                if len(self.rms_history) > 50:  # Keep last 50 samples
+                    self.rms_history.pop(0)
+                
+                # Update and draw
+                self.draw_level_bars()
+            except Exception as e:
+                logging.debug(f"Visualizer update error: {e}")
+    
+    def draw_level_bars(self):
+        """Draw audio level bars"""
+        if self.canvas is None or not hasattr(self, 'rms_history'):
+            return
+            
+        try:
+            self.canvas.delete("all")
+            
+            width = self.width
+            height = self.height
+            mid_y = height // 2
+            
+            # Draw bars for each RMS value
+            bar_width = width / 50
+            for i, rms in enumerate(self.rms_history):
+                # Scale RMS to pixel height (typical range 0.0 to 0.1)
+                bar_height = min(int(rms * 500), height // 2 - 2)
+                x = i * bar_width
+                
+                # Color based on level
+                if rms > 0.05:
+                    color = "#22C55E"  # Green for loud
+                elif rms > 0.01:
+                    color = "#4299E1"  # Blue for normal
+                else:
+                    color = "#64748B"  # Gray for quiet
+                
+                # Draw symmetric bars
+                self.canvas.create_rectangle(
+                    x, mid_y - bar_height,
+                    x + bar_width - 1, mid_y + bar_height,
+                    fill=color, outline=""
+                )
+            
+            # Center line
+            self.canvas.create_line(0, mid_y, width, mid_y, fill="#2D3748", width=1)
+        except Exception as e:
+            logging.debug(f"Canvas draw error: {e}")
+    
+    def draw_waveform(self):
+        """Draw the waveform on the canvas"""
+        if self.canvas is None:
+            return
+            
+        try:
+            # Clear canvas
+            self.canvas.delete("all")
+            
+            # Calculate dimensions
+            width = self.width
+            height = self.height
+            mid_y = height // 2
+            
+            # Normalize waveform data with fixed scale for consistency
+            # Use a fixed scale so quiet sounds still show
+            normalized = np.clip(self.waveform_data * 50, 0, 1)  # Scale up quiet sounds
+            
+            # Draw waveform bars
+            bar_width = max(2, width / len(normalized))
+            for i, value in enumerate(normalized):
+                # Calculate bar height (symmetric around center)
+                bar_height = int(value * (height // 2 - 5))
+                x = i * bar_width
+                
+                # Draw bar from center
+                self.canvas.create_rectangle(
+                    x, mid_y - bar_height,
+                    x + bar_width - 1, mid_y + bar_height,
+                    fill="#4299E1", outline=""
+                )
+            
+            # Draw center line
+            self.canvas.create_line(0, mid_y, width, mid_y, fill="#2D3748", width=1)
+        except Exception as e:
+            logging.debug(f"Canvas draw error: {e}")
 
 class HailoIntegration:
     """Optional Hailo AI integration for enhanced features"""
     
     def __init__(self):
         self.hailo_available = self.check_hailo()
-        self.face_detection_enabled = False
+        # Enable face detection if Hailo is available
+        self.face_detection_enabled = self.hailo_available
+        # Path to the real Hailo detection system
+        self.hailo_script_path = os.path.expanduser("~/hailo-ai/scripts/simple_photo_detect.sh")
         
     def check_hailo(self) -> bool:
         """Check if Hailo is available on the system"""
         try:
+            # Check for hailortcli
             result = subprocess.run(
                 ['which', 'hailortcli'],
                 capture_output=True,
                 text=True
             )
-            if result.returncode == 0:
+            # Also verify the Hailo detection script exists
+            hailo_script = os.path.expanduser("~/hailo-ai/scripts/simple_photo_detect.sh")
+            if result.returncode == 0 and os.path.exists(hailo_script):
                 logging.info("Hailo AI detected - enhanced features available")
                 return True
         except:
@@ -86,19 +180,36 @@ class HailoIntegration:
             return None
             
         try:
-            # Run face detection using Hailo
-            cmd = f"hailo detect --model yolov8s --input {image_path or 'camera'}"
+            # Use the real Hailo detection system
+            # The simple_photo_detect.sh script captures and detects
+            cmd = ["bash", self.hailo_script_path]
+            
             result = subprocess.run(
-                cmd.split(),
+                cmd,
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=10,  # Give more time for actual detection
+                cwd=os.path.expanduser("~/hailo-ai")
             )
-            # Parse results for face detection
-            if "person" in result.stdout.lower():
-                return "Speaker detected"
-        except:
-            pass
+            
+            if result.returncode == 0:
+                output = result.stdout.strip()
+                # Parse real Hailo output for person/face detection
+                # The script outputs detection results
+                if "person" in output.lower() or "people" in output.lower():
+                    # Extract number of people detected if available
+                    import re
+                    match = re.search(r'(\d+)\s*(person|people)', output.lower())
+                    if match:
+                        count = int(match.group(1))
+                        return f"{count} speaker{'s' if count > 1 else ''} detected"
+                    # Fallback if we detect person but can't parse count
+                    if "person" in output.lower():
+                        return "Speaker detected"
+        except subprocess.TimeoutExpired:
+            logging.warning("Hailo detection timed out")
+        except Exception as e:
+            logging.debug(f"Hailo detection error: {e}")
         return None
 
 class Settings:
@@ -284,6 +395,22 @@ class WhisperTranscribePro(ctk.CTk):
         
         # Audio Visualizer Canvas (hidden initially)
         self.visualizer_frame = ctk.CTkFrame(self.main_frame, height=60)
+        
+        # Create actual tkinter canvas for waveform drawing
+        import tkinter as tk
+        self.waveform_canvas = tk.Canvas(
+            self.visualizer_frame,
+            width=580,  # Match frame width minus padding
+            height=60,
+            bg='#1a1a1a' if self.settings.settings.get("theme") == "dark" else '#f0f0f0',
+            highlightthickness=0
+        )
+        self.waveform_canvas.pack(padx=10, pady=5, fill="both", expand=True)
+        
+        # Connect canvas to visualizer
+        self.visualizer.set_canvas(self.waveform_canvas)
+        self.visualizer.width = 580
+        
         # Will be shown during recording
         
         # Record Button - Large and prominent
@@ -413,6 +540,54 @@ class WhisperTranscribePro(ctk.CTk):
         self.record_thread = threading.Thread(target=self.record_audio, daemon=True)
         self.record_thread.start()
     
+    def apply_noise_reduction(self, audio_data: np.ndarray, sample_rate: int) -> np.ndarray:
+        """Apply noise reduction using high-pass filter"""
+        if not self.settings.settings.get("noise_reduction", False):
+            return audio_data
+            
+        try:
+            # Simple noise reduction - don't filter out actual speech
+            # Just remove very low frequencies
+            nyquist = sample_rate / 2
+            cutoff = 50 / nyquist  # Lower cutoff to preserve more speech
+            if cutoff < 1.0:
+                b, a = butter(2, cutoff, btype='high')  # Gentler filter
+                filtered = lfilter(b, a, audio_data)
+                return filtered
+            return audio_data
+        except Exception as e:
+            logging.warning(f"Noise reduction failed: {e}")
+            return audio_data
+    
+    def detect_voice_activity(self, audio_chunk: np.ndarray) -> bool:
+        """Detect if audio chunk contains voice activity"""
+        if not self.settings.settings.get("vad_enabled", False):
+            return True
+            
+        try:
+            # Calculate RMS energy
+            energy = np.sqrt(np.mean(audio_chunk ** 2))
+            
+            # Initialize history if needed
+            if not hasattr(self, 'energy_history'):
+                self.energy_history = []
+            
+            self.energy_history.append(energy)
+            if len(self.energy_history) > 100:
+                self.energy_history.pop(0)
+            
+            # Dynamic threshold
+            if len(self.energy_history) > 10:
+                noise_floor = np.percentile(self.energy_history, 20)
+                voice_threshold = max(noise_floor * 3, 0.01)
+                return energy > voice_threshold
+            
+            return energy > 0.01
+            
+        except Exception as e:
+            logging.warning(f"VAD failed: {e}")
+            return True
+    
     def record_audio(self):
         """Record audio in background thread"""
         try:
@@ -425,14 +600,18 @@ class WhisperTranscribePro(ctk.CTk):
             )
             
             stream.start()
+            
             while self.recording:
                 try:
                     audio_chunk = stream.read(512)[0]
                     self.audio_data.append(audio_chunk)
                     
-                    # Update visualizer (throttled)
-                    if len(self.audio_data) % 10 == 0:
-                        self.visualizer.update(audio_chunk)
+                    # Update visualizer with actual audio level
+                    if len(self.audio_data) % 2 == 0:
+                        # Calculate RMS for visualization
+                        rms = np.sqrt(np.mean(audio_chunk ** 2))
+                        # Pass RMS value for visualization
+                        self.visualizer.update_level(rms)
                         
                 except Exception as e:
                     if "PaErrorCode -9999" in str(e):
@@ -444,6 +623,7 @@ class WhisperTranscribePro(ctk.CTk):
             stream.stop()
             stream.close()
             
+            # Process recording
             if len(self.audio_data) > 5:
                 audio_array = np.concatenate(self.audio_data, axis=0).flatten()
                 self.transcribe_audio(audio_array)
@@ -513,14 +693,16 @@ class WhisperTranscribePro(ctk.CTk):
                     # Copy to clipboard
                     self.copy_to_clipboard(text)
                     
-                    # Check for Hailo integration
-                    if self.hailo.hailo_available and self.settings.settings["hailo_integration"]:
-                        speaker = self.hailo.detect_speaker()
-                        if speaker:
-                            self.ui_queue.put({
-                                'type': 'info',
-                                'text': f"[Hailo: {speaker}]\n"
-                            })
+                    # Check for Hailo integration (disabled automatic camera usage)
+                    # Camera-based speaker detection is now manual-only to avoid privacy concerns
+                    # Uncomment below to enable automatic speaker detection with camera
+                    # if self.hailo.hailo_available and self.settings.settings["hailo_integration"]:
+                    #     speaker = self.hailo.detect_speaker()
+                    #     if speaker:
+                    #         self.ui_queue.put({
+                    #             'type': 'info',
+                    #             'text': f"[Hailo: {speaker}]\n"
+                    #         })
                     
                     self.update_status("● Ready", "green")
                 else:
@@ -563,13 +745,20 @@ class WhisperTranscribePro(ctk.CTk):
     
     def export_transcription(self):
         """Export transcriptions to file"""
+        # Create export directory in Documents
+        export_dir = os.path.expanduser("~/Documents/WhisperTranscriptions")
+        os.makedirs(export_dir, exist_ok=True)
+        
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"transcription_{timestamp}.txt"
+        filename = os.path.join(export_dir, f"transcription_{timestamp}.txt")
         
         try:
             with open(filename, 'w') as f:
                 f.write(self.text_display.get("1.0", "end-1c"))
-            self.show_notification(f"Exported to {filename}")
+            self.show_notification(f"Exported to {os.path.basename(filename)}")
+            
+            # Also show full path in terminal for reference
+            print(f"Transcription saved to: {filename}")
         except Exception as e:
             self.show_notification(f"Export failed: {e}")
     
@@ -1219,6 +1408,10 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Apply changes
         self.parent.apply_theme()
+        
+        # Apply font size to text display
+        new_font_size = int(self.font_slider.get())
+        self.parent.text_display.configure(font=ctk.CTkFont(size=new_font_size))
         
         # Apply window changes
         if self.top_var.get():
