@@ -364,7 +364,7 @@ class WhisperTranscribePro(ctk.CTk):
         # App Title
         self.title_label = ctk.CTkLabel(
             self.top_frame,
-            text="🎙️ Whisper Transcribe Pro",
+            text=" Whisper Transcribe Pro",
             font=ctk.CTkFont(size=16, weight="bold")
         )
         self.title_label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
@@ -372,7 +372,7 @@ class WhisperTranscribePro(ctk.CTk):
         # Status Indicator
         self.status_label = ctk.CTkLabel(
             self.top_frame,
-            text="● Ready",
+            text="* Ready",
             font=ctk.CTkFont(size=12),
             text_color="green"
         )
@@ -381,7 +381,7 @@ class WhisperTranscribePro(ctk.CTk):
         # Settings Button
         self.settings_btn = ctk.CTkButton(
             self.top_frame,
-            text="⚙️",
+            text="Settings",
             width=30,
             command=self.open_settings
         )
@@ -416,7 +416,7 @@ class WhisperTranscribePro(ctk.CTk):
         # Record Button - Large and prominent
         self.record_button = ctk.CTkButton(
             self.main_frame,
-            text="🎤 Click to Record",
+            text="Click to Record",
             font=ctk.CTkFont(size=18, weight="bold"),
             height=60,
             corner_radius=30,
@@ -444,13 +444,13 @@ class WhisperTranscribePro(ctk.CTk):
         self.button_frame.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
         self.button_frame.grid_columnconfigure((0,1,2,3,4), weight=1)
         
-        # Action Buttons with icons
+        # Action Buttons (without emoji for Pi compatibility)
         buttons = [
-            ("📋 Copy Last", self.copy_last),
-            ("📋 Copy All", self.copy_all),
-            ("💾 Export", self.export_transcription),
-            ("🔍 Search", self.search_transcription),
-            ("🗑️ Clear", self.clear_transcriptions)
+            ("Copy Last", self.copy_last),
+            ("Copy All", self.copy_all),
+            ("Export", self.export_transcription),
+            ("Search", self.search_transcription),
+            ("Clear", self.clear_transcriptions)
         ]
         
         for i, (text, command) in enumerate(buttons):
@@ -477,7 +477,7 @@ class WhisperTranscribePro(ctk.CTk):
         self.model_label.grid(row=0, column=0, padx=5, pady=2)
         
         # Hailo status label (shows actual enabled state, not just availability)
-        hailo_status = "Hailo: ✓" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "Hailo: ✗"
+        hailo_status = "Hailo: ON" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "Hailo: OFF"
         hailo_color = "green" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "gray"
         
         self.hailo_label = ctk.CTkLabel(
@@ -506,7 +506,7 @@ class WhisperTranscribePro(ctk.CTk):
         try:
             model_name = self.settings.settings["model"]
             self.model = whisper.load_model(model_name)
-            self.update_status("● Ready", "green")
+            self.update_status("* Ready", "green")
             
             # Update model label in UI to show current model
             if hasattr(self, 'model_label'):
@@ -538,11 +538,11 @@ class WhisperTranscribePro(ctk.CTk):
         
         # Update UI
         self.record_button.configure(
-            text="⏹️ Stop Recording",
+            text="Stop Recording",
             fg_color="#EF4444",
             hover_color="#DC2626"
         )
-        self.update_status("● Recording...", "red")
+        self.update_status("* Recording...", "red")
         
         # Show visualizer
         self.visualizer_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
@@ -657,7 +657,7 @@ class WhisperTranscribePro(ctk.CTk):
         
         # Update UI
         self.record_button.configure(
-            text="🎤 Click to Record",
+            text="Click to Record",
             fg_color="#4299E1",
             hover_color="#3182CE"
         )
@@ -727,7 +727,7 @@ class WhisperTranscribePro(ctk.CTk):
                     #             'text': f"[Hailo: {speaker}]\n"
                     #         })
                     
-                    self.update_status("● Ready", "green")
+                    self.update_status("* Ready", "green")
                 else:
                     self.update_status("No speech detected", "orange")
                 
@@ -813,7 +813,7 @@ class WhisperTranscribePro(ctk.CTk):
     def show_notification(self, message):
         """Show temporary notification"""
         self.update_status(message, "yellow")
-        self.after(3000, lambda: self.update_status("● Ready", "green"))
+        self.after(3000, lambda: self.update_status("* Ready", "green"))
     
     def process_ui_queue(self):
         """Process UI updates from queue"""
@@ -926,7 +926,7 @@ class SettingsWindow(ctk.CTkToplevel):
         # Title
         title_label = ctk.CTkLabel(
             main_container, 
-            text="⚙️ Settings",
+            text="Settings",
             font=ctk.CTkFont(size=20, weight="bold")
         )
         title_label.pack(pady=(5, 10))
@@ -936,13 +936,13 @@ class SettingsWindow(ctk.CTkToplevel):
         self.tabview.pack(fill="both", expand=True, padx=5)
         
         # Create tabs
-        self.tabview.add("🎤 Audio")
-        self.tabview.add("💬 Transcription")
-        self.tabview.add("🎨 Interface")
-        self.tabview.add("⚡ Advanced")
+        self.tabview.add("Audio")
+        self.tabview.add("Transcription")
+        self.tabview.add("Interface")
+        self.tabview.add("Advanced")
         
         # Audio Settings Tab
-        audio_tab = self.tabview.tab("🎤 Audio")
+        audio_tab = self.tabview.tab("Audio")
         audio_frame = ctk.CTkScrollableFrame(audio_tab, height=250)
         audio_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
@@ -982,7 +982,7 @@ class SettingsWindow(ctk.CTkToplevel):
         # Test microphone button
         ctk.CTkButton(
             mic_frame,
-            text="🎙️ Test Microphone",
+            text=" Test Microphone",
             command=self.test_microphone,
             width=200,
             height=35
@@ -1037,7 +1037,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.rate_combo.set(f"{self.settings.settings.get('sample_rate', 44100)} Hz")
         
         # Transcription Settings Tab
-        trans_tab = self.tabview.tab("💬 Transcription")
+        trans_tab = self.tabview.tab("Transcription")
         trans_frame = ctk.CTkScrollableFrame(trans_tab, height=250)
         trans_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
@@ -1139,7 +1139,7 @@ class SettingsWindow(ctk.CTkToplevel):
             # Add explanation
             ctk.CTkLabel(
                 hailo_frame,
-                text="🎧 AI-powered audio processing:\n   • Noise suppression\n   • Volume normalization\n   • Speech clarity enhancement",
+                text=" AI-powered audio processing:\n   - Noise suppression\n   - Volume normalization\n   - Speech clarity enhancement",
                 font=ctk.CTkFont(size=10),
                 text_color="gray",
                 justify="left"
@@ -1147,13 +1147,13 @@ class SettingsWindow(ctk.CTkToplevel):
             
             ctk.CTkLabel(
                 hailo_frame,
-                text="✅ Hailo AI processor detected - Audio enhancement available",
+                text="[OK] Hailo AI processor detected - Audio enhancement available",
                 font=ctk.CTkFont(size=10),
                 text_color="green"
             ).pack(anchor="w", padx=20)
         
         # Interface Settings Tab
-        ui_tab = self.tabview.tab("🎨 Interface")
+        ui_tab = self.tabview.tab("Interface")
         ui_frame = ctk.CTkScrollableFrame(ui_tab, height=250)
         ui_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
@@ -1262,7 +1262,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.font_slider.set(self.settings.settings.get("font_size", 12))
         
         # Advanced Settings Tab
-        adv_tab = self.tabview.tab("⚡ Advanced")
+        adv_tab = self.tabview.tab("Advanced")
         adv_frame = ctk.CTkScrollableFrame(adv_tab, height=250)
         adv_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
@@ -1329,7 +1329,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkButton(
             button_frame,
-            text="💾 Save Settings",
+            text="Save Settings",
             command=self.save_settings,
             width=150,
             height=35,
@@ -1340,7 +1340,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkButton(
             button_frame,
-            text="🔄 Reset Defaults",
+            text="Reset Defaults",
             command=self.reset_defaults,
             width=150,
             height=35,
@@ -1349,7 +1349,7 @@ class SettingsWindow(ctk.CTkToplevel):
         
         ctk.CTkButton(
             button_frame,
-            text="❌ Cancel",
+            text="Cancel",
             command=self.destroy,
             width=150,
             height=35,
@@ -1381,11 +1381,11 @@ class SettingsWindow(ctk.CTkToplevel):
             # Check audio level
             level = np.abs(audio).mean()
             if level > 0.001:
-                self.parent.show_notification(f"✅ Microphone working! Level: {level:.4f}")
+                self.parent.show_notification(f"[OK] Microphone working! Level: {level:.4f}")
             else:
-                self.parent.show_notification("⚠️ No audio detected. Check microphone.")
+                self.parent.show_notification("WARNING: No audio detected. Check microphone.")
         except Exception as e:
-            self.parent.show_notification(f"❌ Error: {str(e)[:50]}")
+            self.parent.show_notification(f"[ERROR] {str(e)[:50]}")
     
     def preview_theme(self, theme_name):
         """Live theme preview"""
@@ -1494,14 +1494,14 @@ class SettingsWindow(ctk.CTkToplevel):
         # Check if model changed and reload if needed
         current_model = getattr(self.parent.model, 'model_name', 'tiny') if self.parent.model else 'tiny'
         if model != current_model:
-            self.parent.show_notification(f"🔄 Loading {model} model...")
+            self.parent.show_notification(f"Loading {model} model...")
             # Reload model in background thread
             def reload_model():
                 try:
                     self.parent.model = whisper.load_model(model)
                     self.parent.ui_queue.put({
                         'type': 'status',
-                        'text': '● Ready',
+                        'text': '* Ready',
                         'color': 'green'
                     })
                     logging.info(f"Reloaded Whisper model: {model}")
@@ -1522,9 +1522,9 @@ class SettingsWindow(ctk.CTkToplevel):
         if hasattr(self.parent, 'hailo_label'):
             hailo_enabled = self.hailo_var.get() if hasattr(self, 'hailo_var') else False
             if self.parent.hailo.hailo_available and hailo_enabled:
-                self.parent.hailo_label.configure(text="Hailo: ✓", text_color="green")
+                self.parent.hailo_label.configure(text="Hailo: ON", text_color="green")
             else:
-                self.parent.hailo_label.configure(text="Hailo: ✗", text_color="gray")
+                self.parent.hailo_label.configure(text="Hailo: OFF", text_color="gray")
         
         # Check if audio device changed
         if device_text and device_text != self.parent.settings.settings.get("audio_device"):
@@ -1541,7 +1541,7 @@ class SettingsWindow(ctk.CTkToplevel):
             except Exception as e:
                 logging.error(f"Failed to switch audio device: {e}")
         
-        self.parent.show_notification("✅ Settings applied immediately!")
+        self.parent.show_notification("Settings applied successfully!")
         self.destroy()
 
 def main():
