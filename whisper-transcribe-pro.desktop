@@ -1,0 +1,20 @@
+[Desktop Entry]
+Name=Whisper Transcribe Pro
+Comment=Advanced Speech to Text with Modern UI and Hailo AI
+Exec=/home/sethshoultes/whisper-transcribe-pi/launch_whisper_pro.sh
+Icon=/home/sethshoultes/whisper-transcribe-pi/icons/whisper-icon.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;Utility;Accessibility;
+Keywords=speech;voice;transcription;whisper;text;audio;pro;hailo;ai;
+StartupNotify=true
+StartupWMClass=WhisperPro
+Actions=Settings;Standard;
+
+[Desktop Action Settings]
+Name=Open Settings
+Exec=/home/sethshoultes/whisper-transcribe-pi/launch_whisper_pro.sh --settings
+
+[Desktop Action Standard]
+Name=Launch Standard Version
+Exec=/home/sethshoultes/whisper-transcribe-pi/launch_whisper.sh
