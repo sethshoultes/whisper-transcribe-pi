@@ -32,11 +32,6 @@ A professional speech-to-text application for Raspberry Pi using OpenAI's Whispe
 - **Professional status indicators**
 - **Advanced audio processing**
 
-### Universal Version (`whisper_transcribe_universal.py`)
-- Cross-platform support (Mac/Windows/Linux)
-- Platform-specific clipboard handling
-- Automatic OS detection
-
 ## Requirements
 
 ### Raspberry Pi
@@ -50,10 +45,6 @@ A professional speech-to-text application for Raspberry Pi using OpenAI's Whispe
 - Hailo-8 AI processor (for enhanced audio processing)
 - Hailo software stack installed
 
-### Other Platforms (Mac/Windows/Linux)
-- Any modern computer with microphone
-- Python 3.7+
-- macOS 10.14+, Windows 10+, or Linux with GUI
 
 ## Quick Installation
 
@@ -284,7 +275,6 @@ ls -la ~/.whisper_transcribe_pro.json
 whisper-transcribe-pi/
 ├── whisper_transcribe.py          # Standard version
 ├── whisper_transcribe_pro.py      # Pro version with advanced features
-├── whisper_transcribe_universal.py # Cross-platform version
 ├── launch_whisper.sh              # Standard launcher
 ├── launch_whisper_pro.sh          # Pro launcher
 ├── setup_pro.sh                   # Pro installation script
