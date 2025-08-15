@@ -852,6 +852,26 @@ class SettingsWindow(ctk.CTkToplevel):
         
         self.create_settings_ui()
     
+    def _bind_mousewheel(self, widget):
+        """Bind mouse wheel events to scrollable widget"""
+        # Bind mouse wheel events for scrolling
+        def _on_mousewheel(event):
+            widget._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        def _bind_to_mousewheel(event):
+            widget._parent_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+            # Linux support
+            widget._parent_canvas.bind_all("<Button-4>", lambda e: widget._parent_canvas.yview_scroll(-1, "units"))
+            widget._parent_canvas.bind_all("<Button-5>", lambda e: widget._parent_canvas.yview_scroll(1, "units"))
+        
+        def _unbind_from_mousewheel(event):
+            widget._parent_canvas.unbind_all("<MouseWheel>")
+            widget._parent_canvas.unbind_all("<Button-4>")
+            widget._parent_canvas.unbind_all("<Button-5>")
+        
+        widget.bind('<Enter>', _bind_to_mousewheel)
+        widget.bind('<Leave>', _unbind_from_mousewheel)
+    
     def get_audio_devices(self):
         """Get list of available audio input devices"""
         devices = []
@@ -867,17 +887,25 @@ class SettingsWindow(ctk.CTkToplevel):
     def create_settings_ui(self):
         """Create settings interface"""
         
+        # Main container frame
+        main_container = ctk.CTkFrame(self)
+        main_container.pack(fill="both", expand=True)
+        
         # Title
         title_label = ctk.CTkLabel(
-            self, 
+            main_container, 
             text="⚙️ Settings",
             font=ctk.CTkFont(size=20, weight="bold")
         )
         title_label.pack(pady=(10, 5))
         
+        # Tabs container with controlled height
+        tabs_container = ctk.CTkFrame(main_container)
+        tabs_container.pack(fill="both", expand=True, padx=15, pady=(5, 0))
+        
         # Tabs for different settings categories
-        self.tabview = ctk.CTkTabview(self)
-        self.tabview.pack(fill="both", expand=True, padx=15, pady=10)
+        self.tabview = ctk.CTkTabview(tabs_container)
+        self.tabview.pack(fill="both", expand=True)
         
         # Create tabs
         self.tabview.add("🎤 Audio")
@@ -889,6 +917,9 @@ class SettingsWindow(ctk.CTkToplevel):
         audio_tab = self.tabview.tab("🎤 Audio")
         audio_frame = ctk.CTkScrollableFrame(audio_tab, height=280)
         audio_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Enable mouse wheel scrolling
+        self._bind_mousewheel(audio_frame)
         
         ctk.CTkLabel(
             audio_frame, 
@@ -981,6 +1012,9 @@ class SettingsWindow(ctk.CTkToplevel):
         trans_tab = self.tabview.tab("💬 Transcription")
         trans_frame = ctk.CTkScrollableFrame(trans_tab, height=280)
         trans_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Enable mouse wheel scrolling
+        self._bind_mousewheel(trans_frame)
         
         ctk.CTkLabel(
             trans_frame, 
@@ -1085,6 +1119,9 @@ class SettingsWindow(ctk.CTkToplevel):
         ui_tab = self.tabview.tab("🎨 Interface")
         ui_frame = ctk.CTkScrollableFrame(ui_tab, height=280)
         ui_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Enable mouse wheel scrolling
+        self._bind_mousewheel(ui_frame)
         
         ctk.CTkLabel(
             ui_frame,
@@ -1210,6 +1247,9 @@ class SettingsWindow(ctk.CTkToplevel):
         adv_frame = ctk.CTkScrollableFrame(adv_tab, height=280)
         adv_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
+        # Enable mouse wheel scrolling
+        self._bind_mousewheel(adv_frame)
+        
         ctk.CTkLabel(
             adv_frame,
             text="Advanced Settings",
@@ -1264,9 +1304,9 @@ class SettingsWindow(ctk.CTkToplevel):
             height=30
         ).pack(anchor="w", padx=30, pady=5)
         
-        # Save/Cancel buttons
+        # Save/Cancel buttons - place at bottom with fixed position
         button_frame = ctk.CTkFrame(self)
-        button_frame.pack(fill="x", padx=15, pady=15)
+        button_frame.pack(side="bottom", fill="x", padx=15, pady=15)
         button_frame.grid_columnconfigure((0, 1, 2), weight=1)
         
         ctk.CTkButton(
