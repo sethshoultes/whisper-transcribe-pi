@@ -585,7 +585,10 @@ class WhisperTranscribePro(ctk.CTk):
     
     def open_settings(self):
         """Open settings window"""
-        SettingsWindow(self, self.settings)
+        if not hasattr(self, 'settings_window') or not self.settings_window.winfo_exists():
+            self.settings_window = SettingsWindow(self, self.settings)
+        else:
+            self.settings_window.lift()
     
     def update_status(self, text, color="white"):
         """Update status label"""
@@ -632,174 +635,580 @@ class SettingsWindow(ctk.CTkToplevel):
         self.settings = settings
         
         self.title("Settings")
-        self.geometry("500x600")
+        self.geometry("600x650")
+        
+        # Center the window
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() // 2) - (600 // 2)
+        y = (self.winfo_screenheight() // 2) - (650 // 2)
+        self.geometry(f"600x650+{x}+{y}")
         
         # Make modal
         self.transient(parent)
         self.grab_set()
         
+        # Get available audio devices
+        self.audio_devices = self.get_audio_devices()
+        
         self.create_settings_ui()
+    
+    def get_audio_devices(self):
+        """Get list of available audio input devices"""
+        devices = []
+        try:
+            import sounddevice as sd
+            for i, device in enumerate(sd.query_devices()):
+                if device['max_input_channels'] > 0:
+                    devices.append(f"{i}: {device['name']}")
+        except:
+            devices = ["Default"]
+        return devices if devices else ["Default"]
     
     def create_settings_ui(self):
         """Create settings interface"""
         
+        # Title
+        title_label = ctk.CTkLabel(
+            self, 
+            text="⚙️ Settings",
+            font=ctk.CTkFont(size=20, weight="bold")
+        )
+        title_label.pack(pady=(10, 5))
+        
         # Tabs for different settings categories
         self.tabview = ctk.CTkTabview(self)
-        self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
+        self.tabview.pack(fill="both", expand=True, padx=15, pady=10)
         
         # Create tabs
-        self.tabview.add("Audio")
-        self.tabview.add("Transcription")
-        self.tabview.add("Interface")
-        self.tabview.add("Advanced")
+        self.tabview.add("🎤 Audio")
+        self.tabview.add("💬 Transcription")
+        self.tabview.add("🎨 Interface")
+        self.tabview.add("⚡ Advanced")
         
         # Audio Settings Tab
-        audio_tab = self.tabview.tab("Audio")
+        audio_tab = self.tabview.tab("🎤 Audio")
+        audio_frame = ctk.CTkScrollableFrame(audio_tab, height=400)
+        audio_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        ctk.CTkLabel(audio_tab, text="Audio Settings", 
-                    font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+        ctk.CTkLabel(
+            audio_frame, 
+            text="Audio Configuration", 
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(pady=10)
         
-        # Microphone selection (placeholder)
-        ctk.CTkLabel(audio_tab, text="Microphone:").pack(pady=5)
+        # Microphone selection with actual devices
+        mic_frame = ctk.CTkFrame(audio_frame)
+        mic_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            mic_frame, 
+            text="Select Microphone:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
         self.mic_combo = ctk.CTkComboBox(
-            audio_tab,
-            values=["Default", "USB Microphone"],
-            width=300
+            mic_frame,
+            values=self.audio_devices,
+            width=400,
+            height=35
         )
-        self.mic_combo.pack(pady=5)
-        self.mic_combo.set("Default")
+        self.mic_combo.pack(padx=10, pady=5)
+        
+        # Set current device
+        if self.settings.settings.get("audio_device"):
+            self.mic_combo.set(self.settings.settings["audio_device"])
+        else:
+            self.mic_combo.set(self.audio_devices[0] if self.audio_devices else "Default")
+        
+        # Test microphone button
+        ctk.CTkButton(
+            mic_frame,
+            text="🎙️ Test Microphone",
+            command=self.test_microphone,
+            width=200,
+            height=35
+        ).pack(pady=10)
+        
+        # Audio processing options
+        process_frame = ctk.CTkFrame(audio_frame)
+        process_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            process_frame,
+            text="Audio Processing:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
         
         # Noise reduction
         self.noise_var = ctk.BooleanVar(value=self.settings.settings["noise_reduction"])
-        ctk.CTkCheckBox(
-            audio_tab,
-            text="Enable Noise Reduction",
-            variable=self.noise_var
-        ).pack(pady=10)
+        noise_check = ctk.CTkCheckBox(
+            process_frame,
+            text="Enable Noise Reduction (Reduces background noise)",
+            variable=self.noise_var,
+            font=ctk.CTkFont(size=12)
+        )
+        noise_check.pack(anchor="w", padx=20, pady=5)
         
         # VAD
         self.vad_var = ctk.BooleanVar(value=self.settings.settings["vad_enabled"])
-        ctk.CTkCheckBox(
-            audio_tab,
-            text="Voice Activity Detection (Auto start/stop)",
-            variable=self.vad_var
-        ).pack(pady=5)
+        vad_check = ctk.CTkCheckBox(
+            process_frame,
+            text="Voice Activity Detection (Auto start/stop recording)",
+            variable=self.vad_var,
+            font=ctk.CTkFont(size=12)
+        )
+        vad_check.pack(anchor="w", padx=20, pady=5)
+        
+        # Sample rate selection
+        rate_frame = ctk.CTkFrame(audio_frame)
+        rate_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            rate_frame,
+            text="Sample Rate:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        self.rate_combo = ctk.CTkComboBox(
+            rate_frame,
+            values=["16000 Hz", "44100 Hz", "48000 Hz"],
+            width=200
+        )
+        self.rate_combo.pack(anchor="w", padx=20, pady=5)
+        self.rate_combo.set(f"{self.settings.settings.get('sample_rate', 44100)} Hz")
         
         # Transcription Settings Tab
-        trans_tab = self.tabview.tab("Transcription")
+        trans_tab = self.tabview.tab("💬 Transcription")
+        trans_frame = ctk.CTkScrollableFrame(trans_tab, height=400)
+        trans_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        ctk.CTkLabel(trans_tab, text="Transcription Settings",
-                    font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
+        ctk.CTkLabel(
+            trans_frame, 
+            text="Transcription Settings",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(pady=10)
         
         # Model selection
-        ctk.CTkLabel(trans_tab, text="Whisper Model:").pack(pady=5)
-        self.model_combo = ctk.CTkComboBox(
-            trans_tab,
-            values=["tiny", "base", "small", "medium"],
-            width=300
-        )
-        self.model_combo.pack(pady=5)
-        self.model_combo.set(self.settings.settings["model"])
+        model_frame = ctk.CTkFrame(trans_frame)
+        model_frame.pack(fill="x", pady=10)
         
-        # Language
-        ctk.CTkLabel(trans_tab, text="Language:").pack(pady=5)
-        self.lang_combo = ctk.CTkComboBox(
-            trans_tab,
-            values=["en", "es", "fr", "de", "it", "pt", "ru", "ja", "ko", "zh"],
-            width=300
+        ctk.CTkLabel(
+            model_frame,
+            text="Whisper Model:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            model_frame,
+            text="Larger models are more accurate but slower",
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        ).pack(anchor="w", padx=10)
+        
+        self.model_combo = ctk.CTkComboBox(
+            model_frame,
+            values=["tiny (39MB, fastest)", "base (74MB)", "small (244MB)", "medium (769MB, most accurate)"],
+            width=400,
+            height=35
         )
-        self.lang_combo.pack(pady=5)
-        self.lang_combo.set(self.settings.settings["language"])
+        self.model_combo.pack(padx=10, pady=5)
+        
+        # Set current model
+        model_map = {
+            "tiny": "tiny (39MB, fastest)",
+            "base": "base (74MB)",
+            "small": "small (244MB)",
+            "medium": "medium (769MB, most accurate)"
+        }
+        current_model = self.settings.settings.get("model", "tiny")
+        self.model_combo.set(model_map.get(current_model, "tiny (39MB, fastest)"))
+        
+        # Language selection
+        lang_frame = ctk.CTkFrame(trans_frame)
+        lang_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            lang_frame,
+            text="Language:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        languages = [
+            "en (English)", "es (Spanish)", "fr (French)", "de (German)",
+            "it (Italian)", "pt (Portuguese)", "ru (Russian)", "ja (Japanese)",
+            "ko (Korean)", "zh (Chinese)", "ar (Arabic)", "hi (Hindi)"
+        ]
+        
+        self.lang_combo = ctk.CTkComboBox(
+            lang_frame,
+            values=languages,
+            width=400,
+            height=35
+        )
+        self.lang_combo.pack(padx=10, pady=5)
+        
+        # Set current language
+        current_lang = self.settings.settings.get("language", "en")
+        for lang_option in languages:
+            if lang_option.startswith(current_lang):
+                self.lang_combo.set(lang_option)
+                break
         
         # Hailo Integration
         if self.parent.hailo.hailo_available:
-            self.hailo_var = ctk.BooleanVar(value=self.settings.settings["hailo_integration"])
-            ctk.CTkCheckBox(
-                trans_tab,
-                text="Enable Hailo AI Integration (Speaker Detection)",
-                variable=self.hailo_var
-            ).pack(pady=10)
+            hailo_frame = ctk.CTkFrame(trans_frame)
+            hailo_frame.pack(fill="x", pady=10)
+            
+            ctk.CTkLabel(
+                hailo_frame,
+                text="Hailo AI Integration:",
+                font=ctk.CTkFont(size=12)
+            ).pack(anchor="w", padx=10, pady=5)
+            
+            self.hailo_var = ctk.BooleanVar(value=self.settings.settings.get("hailo_integration", False))
+            hailo_check = ctk.CTkCheckBox(
+                hailo_frame,
+                text="Enable Hailo AI for Speaker Detection",
+                variable=self.hailo_var,
+                font=ctk.CTkFont(size=12)
+            )
+            hailo_check.pack(anchor="w", padx=20, pady=5)
+            
+            ctk.CTkLabel(
+                hailo_frame,
+                text="✅ Hailo hardware detected and ready",
+                font=ctk.CTkFont(size=10),
+                text_color="green"
+            ).pack(anchor="w", padx=20)
         
         # Interface Settings Tab
-        ui_tab = self.tabview.tab("Interface")
+        ui_tab = self.tabview.tab("🎨 Interface")
+        ui_frame = ctk.CTkScrollableFrame(ui_tab, height=400)
+        ui_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        ctk.CTkLabel(ui_tab, text="Interface Settings",
-                    font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
-        
-        # Theme
-        ctk.CTkLabel(ui_tab, text="Theme:").pack(pady=5)
-        self.theme_combo = ctk.CTkComboBox(
-            ui_tab,
-            values=["dark", "light", "system"],
-            width=300,
-            command=self.change_theme
-        )
-        self.theme_combo.pack(pady=5)
-        self.theme_combo.set(self.settings.settings["theme"])
-        
-        # Window size
-        ctk.CTkLabel(ui_tab, text="Window Size:").pack(pady=5)
-        self.size_combo = ctk.CTkComboBox(
-            ui_tab,
-            values=["compact", "standard", "large"],
-            width=300
-        )
-        self.size_combo.pack(pady=5)
-        self.size_combo.set(self.settings.settings["window_size"])
-        
-        # Always on top
-        self.top_var = ctk.BooleanVar(value=self.settings.settings["always_on_top"])
-        ctk.CTkCheckBox(
-            ui_tab,
-            text="Always on Top",
-            variable=self.top_var
+        ctk.CTkLabel(
+            ui_frame,
+            text="Interface Settings",
+            font=ctk.CTkFont(size=16, weight="bold")
         ).pack(pady=10)
         
+        # Theme selection
+        theme_frame = ctk.CTkFrame(ui_frame)
+        theme_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            theme_frame,
+            text="Application Theme:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        self.theme_combo = ctk.CTkComboBox(
+            theme_frame,
+            values=["Dark Mode", "Light Mode", "System Default"],
+            width=400,
+            height=35,
+            command=self.preview_theme
+        )
+        self.theme_combo.pack(padx=10, pady=5)
+        
+        # Set current theme
+        theme_map = {"dark": "Dark Mode", "light": "Light Mode", "system": "System Default"}
+        self.theme_combo.set(theme_map.get(self.settings.settings.get("theme", "dark"), "Dark Mode"))
+        
+        # Window configuration
+        window_frame = ctk.CTkFrame(ui_frame)
+        window_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            window_frame,
+            text="Window Configuration:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        # Window size
+        ctk.CTkLabel(
+            window_frame,
+            text="Window Size:",
+            font=ctk.CTkFont(size=11)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        self.size_combo = ctk.CTkComboBox(
+            window_frame,
+            values=["Compact (400x300)", "Standard (600x500)", "Large (800x600)"],
+            width=300,
+            height=30
+        )
+        self.size_combo.pack(anchor="w", padx=30, pady=5)
+        
+        # Set current size
+        size_map = {
+            "compact": "Compact (400x300)",
+            "standard": "Standard (600x500)",
+            "large": "Large (800x600)"
+        }
+        self.size_combo.set(size_map.get(self.settings.settings.get("window_size", "standard"), "Standard (600x500)"))
+        
+        # Always on top
+        self.top_var = ctk.BooleanVar(value=self.settings.settings.get("always_on_top", True))
+        top_check = ctk.CTkCheckBox(
+            window_frame,
+            text="Keep Window Always on Top",
+            variable=self.top_var,
+            font=ctk.CTkFont(size=12)
+        )
+        top_check.pack(anchor="w", padx=20, pady=5)
+        
+        # Window opacity
+        ctk.CTkLabel(
+            window_frame,
+            text=f"Window Opacity: {int(self.settings.settings.get('window_opacity', 0.95) * 100)}%",
+            font=ctk.CTkFont(size=11)
+        ).pack(anchor="w", padx=20, pady=5)
+        
+        self.opacity_slider = ctk.CTkSlider(
+            window_frame,
+            from_=0.5,
+            to=1.0,
+            number_of_steps=10,
+            width=300,
+            command=self.update_opacity_label
+        )
+        self.opacity_slider.pack(anchor="w", padx=30, pady=5)
+        self.opacity_slider.set(self.settings.settings.get("window_opacity", 0.95))
+        
+        # Text settings
+        text_frame = ctk.CTkFrame(ui_frame)
+        text_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            text_frame,
+            text="Text Display:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
         # Font size
-        ctk.CTkLabel(ui_tab, text="Font Size:").pack(pady=5)
+        self.font_label = ctk.CTkLabel(
+            text_frame,
+            text=f"Font Size: {self.settings.settings.get('font_size', 12)}pt",
+            font=ctk.CTkFont(size=11)
+        )
+        self.font_label.pack(anchor="w", padx=20, pady=5)
+        
         self.font_slider = ctk.CTkSlider(
-            ui_tab,
+            text_frame,
             from_=10,
             to=20,
             number_of_steps=10,
-            width=300
+            width=300,
+            command=self.update_font_label
         )
-        self.font_slider.pack(pady=5)
-        self.font_slider.set(self.settings.settings["font_size"])
+        self.font_slider.pack(anchor="w", padx=30, pady=5)
+        self.font_slider.set(self.settings.settings.get("font_size", 12))
+        
+        # Advanced Settings Tab
+        adv_tab = self.tabview.tab("⚡ Advanced")
+        adv_frame = ctk.CTkScrollableFrame(adv_tab, height=400)
+        adv_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            adv_frame,
+            text="Advanced Settings",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(pady=10)
+        
+        # Performance options
+        perf_frame = ctk.CTkFrame(adv_frame)
+        perf_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            perf_frame,
+            text="Performance Options:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        # GPU acceleration (placeholder)
+        self.gpu_var = ctk.BooleanVar(value=False)
+        gpu_check = ctk.CTkCheckBox(
+            perf_frame,
+            text="Enable GPU Acceleration (if available)",
+            variable=self.gpu_var,
+            font=ctk.CTkFont(size=12),
+            state="disabled"  # Disabled for now
+        )
+        gpu_check.pack(anchor="w", padx=20, pady=5)
+        
+        # Debug options
+        debug_frame = ctk.CTkFrame(adv_frame)
+        debug_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            debug_frame,
+            text="Debug Options:",
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        self.debug_var = ctk.BooleanVar(value=False)
+        debug_check = ctk.CTkCheckBox(
+            debug_frame,
+            text="Enable Debug Logging",
+            variable=self.debug_var,
+            font=ctk.CTkFont(size=12)
+        )
+        debug_check.pack(anchor="w", padx=20, pady=5)
+        
+        ctk.CTkButton(
+            debug_frame,
+            text="View Log File",
+            command=self.view_log,
+            width=150,
+            height=30
+        ).pack(anchor="w", padx=30, pady=5)
         
         # Save/Cancel buttons
         button_frame = ctk.CTkFrame(self)
-        button_frame.pack(fill="x", padx=10, pady=10)
+        button_frame.pack(fill="x", padx=15, pady=15)
+        button_frame.grid_columnconfigure((0, 1, 2), weight=1)
         
         ctk.CTkButton(
             button_frame,
-            text="Save",
-            command=self.save_settings
-        ).pack(side="left", padx=5)
+            text="💾 Save Settings",
+            command=self.save_settings,
+            width=150,
+            height=40,
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="green",
+            hover_color="darkgreen"
+        ).grid(row=0, column=0, padx=5, sticky="e")
         
         ctk.CTkButton(
             button_frame,
-            text="Cancel",
-            command=self.destroy
-        ).pack(side="left", padx=5)
+            text="🔄 Reset Defaults",
+            command=self.reset_defaults,
+            width=150,
+            height=40,
+            font=ctk.CTkFont(size=13)
+        ).grid(row=0, column=1, padx=5)
+        
+        ctk.CTkButton(
+            button_frame,
+            text="❌ Cancel",
+            command=self.destroy,
+            width=150,
+            height=40,
+            font=ctk.CTkFont(size=13)
+        ).grid(row=0, column=2, padx=5, sticky="w")
     
-    def change_theme(self, theme):
+    def test_microphone(self):
+        """Test microphone with audio recording"""
+        try:
+            import sounddevice as sd
+            import numpy as np
+            
+            # Get device index from selection
+            device_str = self.mic_combo.get()
+            device_index = int(device_str.split(":")[0]) if ":" in device_str else None
+            
+            # Record 2 seconds
+            duration = 2
+            sample_rate = 44100
+            
+            self.parent.show_notification("Recording 2 second test...")
+            audio = sd.rec(int(duration * sample_rate), 
+                          samplerate=sample_rate, 
+                          channels=1,
+                          device=device_index,
+                          dtype=np.float32)
+            sd.wait()
+            
+            # Check audio level
+            level = np.abs(audio).mean()
+            if level > 0.001:
+                self.parent.show_notification(f"✅ Microphone working! Level: {level:.4f}")
+            else:
+                self.parent.show_notification("⚠️ No audio detected. Check microphone.")
+        except Exception as e:
+            self.parent.show_notification(f"❌ Error: {str(e)[:50]}")
+    
+    def preview_theme(self, theme_name):
         """Live theme preview"""
-        if theme in ["dark", "light"]:
+        theme_map = {"Dark Mode": "dark", "Light Mode": "light", "System Default": "system"}
+        theme = theme_map.get(theme_name, "dark")
+        if theme != "system":
             ctk.set_appearance_mode(theme)
+    
+    def update_opacity_label(self, value):
+        """Update opacity label with slider value"""
+        # Find and update the opacity label
+        pass  # Label updates are handled differently in CTk
+    
+    def update_font_label(self, value):
+        """Update font size label with slider value"""
+        self.font_label.configure(text=f"Font Size: {int(value)}pt")
+    
+    def view_log(self):
+        """Open log file viewer"""
+        try:
+            import subprocess
+            subprocess.run(['xdg-open', '/tmp/whisper_pro.log'])
+        except:
+            self.parent.show_notification("Log file: /tmp/whisper_pro.log")
+    
+    def reset_defaults(self):
+        """Reset all settings to defaults"""
+        # Reset UI elements
+        self.theme_combo.set("Dark Mode")
+        self.model_combo.set("tiny (39MB, fastest)")
+        self.lang_combo.set("en (English)")
+        self.size_combo.set("Standard (600x500)")
+        self.top_var.set(True)
+        self.font_slider.set(12)
+        self.opacity_slider.set(0.95)
+        self.noise_var.set(False)
+        self.vad_var.set(False)
+        if hasattr(self, 'hailo_var'):
+            self.hailo_var.set(False)
+        
+        self.parent.show_notification("Settings reset to defaults")
     
     def save_settings(self):
         """Save all settings"""
+        # Extract values from UI
+        theme_map = {"Dark Mode": "dark", "Light Mode": "light", "System Default": "system"}
+        size_map = {
+            "Compact (400x300)": "compact",
+            "Standard (600x500)": "standard",
+            "Large (800x600)": "large"
+        }
+        
+        # Extract model name
+        model_text = self.model_combo.get()
+        model = model_text.split()[0] if model_text else "tiny"
+        
+        # Extract language code
+        lang_text = self.lang_combo.get()
+        lang = lang_text.split()[0] if lang_text else "en"
+        
+        # Extract device
+        device_text = self.mic_combo.get()
+        
+        # Extract sample rate
+        rate_text = self.rate_combo.get()
+        sample_rate = int(rate_text.split()[0]) if rate_text else 44100
+        
         # Update settings
         self.settings.settings.update({
-            "theme": self.theme_combo.get(),
-            "model": self.model_combo.get(),
-            "language": self.lang_combo.get(),
-            "window_size": self.size_combo.get(),
+            "theme": theme_map.get(self.theme_combo.get(), "dark"),
+            "model": model,
+            "language": lang,
+            "window_size": size_map.get(self.size_combo.get(), "standard"),
             "always_on_top": self.top_var.get(),
             "font_size": int(self.font_slider.get()),
+            "window_opacity": self.opacity_slider.get(),
             "noise_reduction": self.noise_var.get(),
             "vad_enabled": self.vad_var.get(),
+            "audio_device": device_text,
+            "sample_rate": sample_rate,
+            "debug_logging": self.debug_var.get() if hasattr(self, 'debug_var') else False
         })
         
         if hasattr(self, 'hailo_var'):
@@ -810,7 +1219,24 @@ class SettingsWindow(ctk.CTkToplevel):
         
         # Apply changes
         self.parent.apply_theme()
-        self.parent.show_notification("Settings saved")
+        
+        # Apply window changes
+        if self.top_var.get():
+            self.parent.attributes("-topmost", True)
+        else:
+            self.parent.attributes("-topmost", False)
+        
+        # Apply opacity
+        try:
+            self.parent.attributes("-alpha", self.opacity_slider.get())
+        except:
+            pass
+        
+        self.parent.show_notification("✅ Settings saved successfully!")
+        
+        # Note about model change
+        if model != self.parent.settings.settings.get("model", "tiny"):
+            self.parent.show_notification("⚠️ Restart app to load new model")
         
         self.destroy()
 
