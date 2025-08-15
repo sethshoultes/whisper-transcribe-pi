@@ -1,38 +1,38 @@
-# 🗺️ Whisper Transcribe Pi - Project Map
+# Whisper Transcribe Pi - Project Map
 
-## 📁 Project Structure
+## Project Structure
 ```
 /home/sethshoultes/whisper-transcribe-pi/
 │
-├── 🎙️ Main Applications
+├── Main Applications
 │   ├── whisper_transcribe.py         # Standard version (tkinter, lightweight)
 │   └── whisper_transcribe_pro.py     # Pro version (customtkinter, full-featured)
 │
-├── 🚀 Launcher Scripts
+├── Launcher Scripts
 │   ├── launch_whisper.sh             # Standard launcher (activates venv)
 │   └── launch_whisper_pro.sh         # Pro launcher (nohup for background)
 │
-├── ⚙️ Installation & Setup
+├── Installation & Setup
 │   ├── install.sh                    # Standard installation script
 │   ├── setup_pro.sh                  # Pro installation with dependencies
 │   └── requirements.txt              # Python dependencies (whisper, customtkinter, etc.)
 │
-├── 🖥️ Desktop Integration
+├── Desktop Integration
 │   ├── whisper-transcribe.desktop    # Standard desktop entry
 │   └── whisper-transcribe-pro.desktop # Pro desktop entry
 │
-├── 📚 Documentation
+├── Documentation
 │   ├── README.md                     # Main documentation
 │   ├── CLAUDE.md                     # Development instructions
 │   ├── PROJECT_MAP.md                # This file - project structure map
 │   ├── PRO_FEATURES.md              # Pro features detailed
 │   └── MARKETING.md                  # Marketing strategy
 │
-└── 🎨 Icons
+└── Icons
     └── icons/create_icon.py          # Icon generator script
 ```
 
-## 🔑 Key Features Map
+## Key Features Map
 
 ### Standard Version (`whisper_transcribe.py`)
 - **GUI**: Simple tkinter interface
@@ -73,15 +73,15 @@
   - `export_transcription()`: Save to ~/Documents/WhisperTranscriptions/
   - Timestamped filenames
 
-## 🔄 Current State (master branch)
-- ✅ Inline microphone test (no modal window)
-- ✅ Fixed emoji display issues for Pi
-- ✅ Settings apply immediately
-- ✅ Hailo AI audio enhancement
-- ✅ Comprehensive README updated
-- ❌ Universal version removed (not functional)
+## Current State (master branch)
+- [DONE] Inline microphone test (no modal window)
+- [DONE] Fixed emoji display issues for Pi
+- [DONE] Settings apply immediately
+- [DONE] Hailo AI audio enhancement
+- [DONE] Comprehensive README updated
+- [REMOVED] Universal version removed (not functional)
 
-## 📦 Dependencies
+## Dependencies
 - `openai-whisper`: Speech recognition
 - `customtkinter`: Modern UI (Pro only)
 - `sounddevice`: Audio recording
@@ -89,7 +89,7 @@
 - `numpy`: Array operations
 - `pyaudio`: Audio I/O
 
-## 🎯 Quick Commands
+## Quick Commands
 ```bash
 # Run Pro version
 ./launch_whisper_pro.sh
@@ -110,13 +110,13 @@
 /tmp/whisper_pro.log
 ```
 
-## 🔌 Key Integration Points
+## Key Integration Points
 
 ### Audio Flow
-1. **Input**: USB Microphone (44.1kHz) → sounddevice
-2. **Processing**: Resampling → Noise Reduction → VAD → Hailo Enhancement
+1. **Input**: USB Microphone (44.1kHz) -> sounddevice
+2. **Processing**: Resampling -> Noise Reduction -> VAD -> Hailo Enhancement
 3. **Transcription**: Whisper Model (tiny/base/small/medium)
-4. **Output**: Text Display → Clipboard → Export File
+4. **Output**: Text Display -> Clipboard -> Export File
 
 ### Settings Management
 - **Storage**: `~/.whisper_transcribe_pro.json`
@@ -129,7 +129,7 @@
 - **Test Panel**: Inline expandable microphone test
 - **Status Bar**: Model, Hailo status, notifications
 
-## 🐛 Common Issues & Solutions
+## Common Issues & Solutions
 
 | Issue | Solution | File/Line |
 |-------|----------|-----------|
@@ -139,7 +139,7 @@
 | Window opacity not working | Removed - Wayland incompatible | N/A |
 | Model switching slow | Background loading implemented | Lines 1140-1160 |
 
-## 📊 Performance Metrics
+## Performance Metrics
 - **Startup**: ~2-3 seconds (model loading)
 - **Recording**: Real-time with 512 sample blocks
 - **Transcription**: 2-3s (Pi5), 4-6s (Pi4)

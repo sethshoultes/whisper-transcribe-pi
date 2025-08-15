@@ -2,10 +2,10 @@
 
 Development guide for Claude Code when working with Whisper Transcribe Pi.
 
-## 📍 Navigation
+## Navigation
 See `PROJECT_MAP.md` for complete project structure and line references.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Run Commands
 ```bash
@@ -24,7 +24,7 @@ See `PROJECT_MAP.md` for complete project structure and line references.
 - Exports: `~/Documents/WhisperTranscriptions/`
 - Logs: `/tmp/whisper_pro.log`
 
-## 🛠️ Development Guidelines
+## Development Guidelines
 
 ### Code Style
 - 4-space indentation
@@ -46,7 +46,7 @@ python3 -c "import sounddevice as sd; print(sd.query_devices())"
 arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 ```
 
-## 🔧 Common Tasks
+## Common Tasks
 
 ### Debugging Audio Issues
 1. Check USB mic detection in `detect_usb_microphone()` (Line ~250)
@@ -64,7 +64,7 @@ arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 3. Document in README.md user-facing changes
 4. Test on actual Raspberry Pi hardware
 
-## ⚠️ Critical Rules
+## Critical Rules
 
 ### NO Mock Data
 - Always use REAL audio devices
@@ -78,16 +78,16 @@ arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 - ASCII only (no emoji) for Pi compatibility
 - Consider Wayland limitations (no window opacity)
 
-## 🐛 Known Issues
+## Known Issues
 
 | Issue | Status | Solution |
 |-------|--------|----------|
-| Emoji display on Pi | ✅ Fixed | Using ASCII alternatives |
-| Window opacity | ✅ Removed | Wayland incompatible |
-| Settings not applying | ✅ Fixed | Immediate application implemented |
-| Modal test window | ✅ Fixed | Inline panel instead |
+| Emoji display on Pi | Fixed | Using ASCII alternatives |
+| Window opacity | Removed | Wayland incompatible |
+| Settings not applying | Fixed | Immediate application implemented |
+| Modal test window | Fixed | Inline panel instead |
 
-## 📝 Git Workflow
+## Git Workflow
 
 ```bash
 # Feature branch
@@ -101,7 +101,7 @@ git commit -m "Add feature: description"
 git push -u origin feature/new-feature
 ```
 
-## 🔍 Quick Reference
+## Quick Reference
 
 ### Key Classes
 - `WhisperTranscribePro` - Main application (Line 132)
