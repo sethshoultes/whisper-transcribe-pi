@@ -483,14 +483,17 @@ class WhisperTranscribePro(ctk.CTk):
         )
         self.model_label.grid(row=0, column=0, padx=5, pady=2)
         
-        if self.hailo.hailo_available:
-            self.hailo_label = ctk.CTkLabel(
-                self.bottom_frame,
-                text="Hailo: ✓",
-                font=ctk.CTkFont(size=10),
-                text_color="green"
-            )
-            self.hailo_label.grid(row=0, column=2, padx=5, pady=2)
+        # Hailo status label (shows actual enabled state, not just availability)
+        hailo_status = "Hailo: ✓" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "Hailo: ✗"
+        hailo_color = "green" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "gray"
+        
+        self.hailo_label = ctk.CTkLabel(
+            self.bottom_frame,
+            text=hailo_status,
+            font=ctk.CTkFont(size=10),
+            text_color=hailo_color
+        )
+        self.hailo_label.grid(row=0, column=2, padx=5, pady=2)
         
         # Keyboard bindings
         self.bind('<r>', lambda e: self.toggle_recording())
@@ -511,6 +514,14 @@ class WhisperTranscribePro(ctk.CTk):
             model_name = self.settings.settings["model"]
             self.model = whisper.load_model(model_name)
             self.update_status("● Ready", "green")
+            
+            # Update model label in UI to show current model
+            if hasattr(self, 'model_label'):
+                self.ui_queue.put({
+                    'type': 'model_update',
+                    'model': model_name
+                })
+            
             logging.info(f"Loaded Whisper model: {model_name}")
         except Exception as e:
             self.update_status("Model load failed", "red")
@@ -827,6 +838,8 @@ class WhisperTranscribePro(ctk.CTk):
                     )
                 elif update['type'] == 'info':
                     self.text_display.insert("end", update['text'])
+                elif update['type'] == 'model_update':
+                    self.model_label.configure(text=f"Model: {update['model']}")
                     
         except queue.Empty:
             pass
@@ -1538,6 +1551,17 @@ class SettingsWindow(ctk.CTkToplevel):
                     })
             
             threading.Thread(target=reload_model, daemon=True).start()
+            
+            # Update model label in UI
+            self.parent.model_label.configure(text=f"Model: {model}")
+        
+        # Update Hailo status in UI
+        if hasattr(self.parent, 'hailo_label'):
+            hailo_enabled = self.hailo_var.get() if hasattr(self, 'hailo_var') else False
+            if self.parent.hailo.hailo_available and hailo_enabled:
+                self.parent.hailo_label.configure(text="Hailo: ✓", text_color="green")
+            else:
+                self.parent.hailo_label.configure(text="Hailo: ✗", text_color="gray")
         
         # Check if audio device changed
         if device_text and device_text != self.parent.settings.settings.get("audio_device"):
