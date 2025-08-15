@@ -1466,6 +1466,15 @@ class SettingsWindow(ctk.CTkToplevel):
         new_font_size = int(self.font_slider.get())
         self.parent.text_display.configure(font=ctk.CTkFont(size=new_font_size))
         
+        # Apply window size changes immediately
+        size_map_reverse = {
+            "Compact (400x300)": "400x300",
+            "Standard (600x500)": "600x500", 
+            "Large (800x600)": "800x600"
+        }
+        new_size = size_map_reverse.get(self.size_combo.get(), "600x500")
+        self.parent.geometry(new_size)
+        
         # Apply window changes
         if self.top_var.get():
             self.parent.attributes("-topmost", True)
