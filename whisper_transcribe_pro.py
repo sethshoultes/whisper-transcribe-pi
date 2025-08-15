@@ -233,7 +233,6 @@ class Settings:
             "model": "tiny",
             "language": "en",
             "always_on_top": True,
-            "window_opacity": 0.95,
             "font_size": 12,
             "noise_reduction": False,
             "vad_enabled": False,
@@ -346,12 +345,6 @@ class WhisperTranscribePro(ctk.CTk):
         # Always on top
         if self.settings.settings["always_on_top"]:
             self.attributes("-topmost", True)
-        
-        # Window transparency
-        try:
-            self.attributes("-alpha", self.settings.settings["window_opacity"])
-        except:
-            pass
         
         # Position window
         self.geometry("+50+50")
@@ -1239,24 +1232,6 @@ class SettingsWindow(ctk.CTkToplevel):
         )
         top_check.pack(anchor="w", padx=20, pady=5)
         
-        # Window opacity
-        ctk.CTkLabel(
-            window_frame,
-            text=f"Window Opacity: {int(self.settings.settings.get('window_opacity', 0.95) * 100)}%",
-            font=ctk.CTkFont(size=11)
-        ).pack(anchor="w", padx=20, pady=5)
-        
-        self.opacity_slider = ctk.CTkSlider(
-            window_frame,
-            from_=0.5,
-            to=1.0,
-            number_of_steps=10,
-            width=300,
-            command=self.update_opacity_label
-        )
-        self.opacity_slider.pack(anchor="w", padx=30, pady=5)
-        self.opacity_slider.set(self.settings.settings.get("window_opacity", 0.95))
-        
         # Text settings
         text_frame = ctk.CTkFrame(ui_frame)
         text_frame.pack(fill="x", pady=10)
@@ -1419,10 +1394,6 @@ class SettingsWindow(ctk.CTkToplevel):
         if theme != "system":
             ctk.set_appearance_mode(theme)
     
-    def update_opacity_label(self, value):
-        """Update opacity label with slider value"""
-        # Find and update the opacity label
-        pass  # Label updates are handled differently in CTk
     
     def update_font_label(self, value):
         """Update font size label with slider value"""
@@ -1445,7 +1416,6 @@ class SettingsWindow(ctk.CTkToplevel):
         self.size_combo.set("Standard (600x500)")
         self.top_var.set(True)
         self.font_slider.set(12)
-        self.opacity_slider.set(0.95)
         self.noise_var.set(False)
         self.vad_var.set(False)
         if hasattr(self, 'hailo_var'):
@@ -1486,7 +1456,6 @@ class SettingsWindow(ctk.CTkToplevel):
             "window_size": size_map.get(self.size_combo.get(), "standard"),
             "always_on_top": self.top_var.get(),
             "font_size": int(self.font_slider.get()),
-            "window_opacity": self.opacity_slider.get(),
             "noise_reduction": self.noise_var.get(),
             "vad_enabled": self.vad_var.get(),
             "audio_device": device_text,
@@ -1521,17 +1490,6 @@ class SettingsWindow(ctk.CTkToplevel):
             self.parent.attributes("-topmost", True)
         else:
             self.parent.attributes("-topmost", False)
-        
-        # Apply opacity (may not work on Wayland/labwc)
-        try:
-            opacity = self.opacity_slider.get()
-            self.parent.attributes("-alpha", opacity)
-            # Check if it actually worked
-            if self.parent.attributes("-alpha") != opacity:
-                logging.info("Window opacity not supported on this window manager (Wayland/labwc)")
-        except Exception as e:
-            logging.debug(f"Opacity setting not supported: {e}")
-            pass
         
         # Check if model changed and reload if needed
         current_model = getattr(self.parent.model, 'model_name', 'tiny') if self.parent.model else 'tiny'
