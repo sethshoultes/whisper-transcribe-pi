@@ -980,13 +980,84 @@ class SettingsWindow(ctk.CTkToplevel):
             self.mic_combo.set(self.audio_devices[0] if self.audio_devices else "Default")
         
         # Test microphone button
-        ctk.CTkButton(
+        self.test_button = ctk.CTkButton(
             mic_frame,
             text=" Test Microphone",
-            command=self.test_microphone,
+            command=self.toggle_test_microphone,
             width=200,
             height=35
-        ).pack(pady=10)
+        )
+        self.test_button.pack(pady=10)
+        
+        # Test results frame (initially hidden)
+        self.test_frame = ctk.CTkFrame(mic_frame)
+        # Don't pack initially - will be shown when test starts
+        
+        # Test status label
+        self.test_status = ctk.CTkLabel(
+            self.test_frame,
+            text="Ready to test microphone",
+            font=ctk.CTkFont(size=11)
+        )
+        self.test_status.pack(pady=5)
+        
+        # Audio level bar
+        level_container = ctk.CTkFrame(self.test_frame)
+        level_container.pack(fill="x", padx=20, pady=5)
+        
+        ctk.CTkLabel(
+            level_container,
+            text="Level:",
+            font=ctk.CTkFont(size=10)
+        ).pack(side="left", padx=5)
+        
+        self.test_level_bar = ctk.CTkProgressBar(level_container, width=150)
+        self.test_level_bar.pack(side="left", padx=5)
+        self.test_level_bar.set(0)
+        
+        self.test_level_text = ctk.CTkLabel(
+            level_container,
+            text="0%",
+            font=ctk.CTkFont(size=10)
+        )
+        self.test_level_text.pack(side="left", padx=5)
+        
+        # Mini waveform canvas
+        from tkinter import Canvas
+        self.test_waveform = Canvas(
+            self.test_frame,
+            height=60,
+            bg="#212121" if self.parent.theme == "dark" else "#f0f0f0",
+            highlightthickness=0
+        )
+        self.test_waveform.pack(fill="x", padx=20, pady=5)
+        
+        # Test controls
+        test_controls = ctk.CTkFrame(self.test_frame)
+        test_controls.pack(pady=5)
+        
+        self.test_record_btn = ctk.CTkButton(
+            test_controls,
+            text="Record 2s",
+            command=lambda: self.start_test_recording(),
+            width=80,
+            height=28
+        )
+        self.test_record_btn.pack(side="left", padx=5)
+        
+        self.test_play_btn = ctk.CTkButton(
+            test_controls,
+            text="Playback",
+            command=lambda: self.playback_test_recording(),
+            width=80,
+            height=28,
+            state="disabled"
+        )
+        self.test_play_btn.pack(side="left", padx=5)
+        
+        # Storage for test recording
+        self.test_audio_data = None
+        self.test_expanded = False
         
         # Audio processing options
         process_frame = ctk.CTkFrame(audio_frame)
@@ -1356,36 +1427,161 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=13)
         ).grid(row=0, column=2, padx=5, sticky="w")
     
-    def test_microphone(self):
-        """Test microphone with audio recording"""
+    def toggle_test_microphone(self):
+        """Toggle the test microphone panel"""
+        if not self.test_expanded:
+            self.test_frame.pack(fill="x", padx=10, pady=5)
+            self.test_button.configure(text=" Hide Test Panel")
+            self.test_expanded = True
+        else:
+            self.test_frame.pack_forget()
+            self.test_button.configure(text=" Test Microphone")
+            self.test_expanded = False
+            self.test_level_bar.set(0)
+            self.test_level_text.configure(text="0%")
+    
+    def start_test_recording(self):
+        """Start inline microphone test recording"""
         try:
             import sounddevice as sd
             import numpy as np
+            import threading
             
-            # Get device index from selection
+            # Get device
             device_str = self.mic_combo.get()
             device_index = int(device_str.split(":")[0]) if ":" in device_str else None
-            
-            # Record 2 seconds
-            duration = 2
             sample_rate = 44100
+            duration = 2
             
-            self.parent.show_notification("Recording 2 second test...")
-            audio = sd.rec(int(duration * sample_rate), 
-                          samplerate=sample_rate, 
-                          channels=1,
-                          device=device_index,
-                          dtype=np.float32)
-            sd.wait()
+            # Update UI
+            self.test_status.configure(text="Recording for 2 seconds...")
+            self.test_record_btn.configure(state="disabled")
+            self.test_play_btn.configure(state="disabled")
+            self.test_level_bar.set(0)
             
-            # Check audio level
-            level = np.abs(audio).mean()
-            if level > 0.001:
-                self.parent.show_notification(f"[OK] Microphone working! Level: {level:.4f}")
-            else:
-                self.parent.show_notification("WARNING: No audio detected. Check microphone.")
+            def record():
+                try:
+                    # Record audio
+                    self.test_audio_data = sd.rec(
+                        int(duration * sample_rate),
+                        samplerate=sample_rate,
+                        channels=1,
+                        device=device_index,
+                        dtype=np.float32
+                    )
+                    sd.wait()
+                    
+                    # Flatten and analyze
+                    self.test_audio_data = self.test_audio_data.flatten()
+                    avg_level = np.abs(self.test_audio_data).mean()
+                    max_level = np.abs(self.test_audio_data).max()
+                    
+                    # Draw waveform
+                    self.draw_test_waveform(self.test_audio_data)
+                    
+                    # Update status
+                    if avg_level > 0.001:
+                        self.test_status.configure(
+                            text=f"Recording complete! Avg: {avg_level:.4f}, Peak: {max_level:.3f}"
+                        )
+                        self.test_play_btn.configure(state="normal")
+                        self.test_level_bar.set(min(1.0, avg_level * 50))
+                        self.test_level_text.configure(text=f"{int(min(100, avg_level * 5000))}%")
+                    else:
+                        self.test_status.configure(
+                            text="WARNING: No audio detected. Check microphone."
+                        )
+                        self.test_level_bar.set(0)
+                        self.test_level_text.configure(text="0%")
+                    
+                    self.test_record_btn.configure(state="normal")
+                    
+                except Exception as e:
+                    self.test_status.configure(text=f"Error: {str(e)[:50]}")
+                    self.test_record_btn.configure(state="normal")
+            
+            # Start recording in thread
+            thread = threading.Thread(target=record, daemon=True)
+            thread.start()
+            
         except Exception as e:
-            self.parent.show_notification(f"[ERROR] {str(e)[:50]}")
+            self.test_status.configure(text=f"Error: {str(e)[:50]}")
+    
+    def playback_test_recording(self):
+        """Play back the test recording"""
+        if self.test_audio_data is not None:
+            try:
+                import sounddevice as sd
+                import threading
+                
+                self.test_status.configure(text="Playing recording...")
+                self.test_play_btn.configure(state="disabled")
+                
+                def play():
+                    sd.play(self.test_audio_data, 44100)
+                    sd.wait()
+                    self.test_status.configure(text="Playback complete")
+                    self.test_play_btn.configure(state="normal")
+                
+                thread = threading.Thread(target=play, daemon=True)
+                thread.start()
+                
+            except Exception as e:
+                self.test_status.configure(text=f"Playback error: {str(e)[:30]}")
+                self.test_play_btn.configure(state="normal")
+    
+    def draw_test_waveform(self, audio_data):
+        """Draw waveform on mini canvas"""
+        try:
+            import numpy as np
+            
+            self.test_waveform.delete("all")
+            
+            # Get canvas dimensions
+            canvas_width = self.test_waveform.winfo_width()
+            canvas_height = 60  # Fixed height
+            
+            if canvas_width <= 1:
+                canvas_width = 300  # Default width
+            
+            # Downsample for display
+            samples_to_show = min(len(audio_data), 500)
+            step = max(1, len(audio_data) // samples_to_show)
+            downsampled = audio_data[::step]
+            
+            # Normalize
+            max_val = np.max(np.abs(downsampled))
+            if max_val > 0:
+                normalized = downsampled / max_val
+            else:
+                normalized = downsampled
+            
+            # Draw waveform
+            mid_y = canvas_height // 2
+            x_step = canvas_width / len(normalized)
+            
+            # Draw center line
+            self.test_waveform.create_line(
+                0, mid_y, canvas_width, mid_y,
+                fill="#444444" if self.parent.theme == "dark" else "#cccccc",
+                dash=(3, 3)
+            )
+            
+            # Draw waveform
+            points = []
+            for i, val in enumerate(normalized):
+                x = i * x_step
+                y = mid_y - (val * mid_y * 0.7)
+                points.extend([x, y])
+            
+            if len(points) >= 4:
+                self.test_waveform.create_line(
+                    points,
+                    fill="#00ff00" if self.parent.theme == "dark" else "#0080ff",
+                    width=2
+                )
+        except Exception as e:
+            print(f"Waveform draw error: {e}")
     
     def preview_theme(self, theme_name):
         """Live theme preview"""
