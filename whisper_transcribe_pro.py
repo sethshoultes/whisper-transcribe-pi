@@ -1111,11 +1111,22 @@ class SettingsWindow(ctk.CTkToplevel):
             self.hailo_var = ctk.BooleanVar(value=self.settings.settings.get("hailo_integration", False))
             hailo_check = ctk.CTkCheckBox(
                 hailo_frame,
-                text="Enable Hailo AI for Speaker Detection",
+                text="Enable Hailo AI for Speaker Detection (Currently inactive)",
                 variable=self.hailo_var,
-                font=ctk.CTkFont(size=12)
+                font=ctk.CTkFont(size=12),
+                state="disabled",  # Disable checkbox since feature is not active
+                text_color="gray"
             )
             hailo_check.pack(anchor="w", padx=20, pady=5)
+            
+            # Add explanation
+            ctk.CTkLabel(
+                hailo_frame,
+                text="⚠️ Camera-based speaker detection disabled for privacy.\n   This feature would use camera to identify speakers.",
+                font=ctk.CTkFont(size=10),
+                text_color="gray",
+                justify="left"
+            ).pack(anchor="w", padx=40, pady=(0, 5))
             
             ctk.CTkLabel(
                 hailo_frame,
