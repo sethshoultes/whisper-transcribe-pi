@@ -1,363 +1,118 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with the Whisper Transcribe Pi repository.
+Development guide for Claude Code when working with Whisper Transcribe Pi.
 
-## Project Overview
+## 📍 Navigation
+See `PROJECT_MAP.md` for complete project structure and line references.
 
-Whisper Transcribe Pi is a GUI-based speech-to-text application for Raspberry Pi (and cross-platform) using OpenAI's Whisper model. It provides real-time transcription with a floating window interface, automatic clipboard integration, and one-click installation.
+## 🚀 Quick Start
 
-### Key Features
-- Real-time speech recognition with GUI
-- Floating always-on-top window
-- Automatic clipboard integration  
-- USB microphone auto-detection
-- Desktop menu integration (Pi)
-- Cross-platform support (Pi, Mac, Windows, Linux)
-
-## Build/Run Commands
-
-### Raspberry Pi Installation
+### Run Commands
 ```bash
-# Quick install (recommended)
-git clone https://github.com/sethshoultes/whisper-transcribe-pi.git
-cd whisper-transcribe-pi
-./install.sh
+# Pro version
+./launch_whisper_pro.sh
 
-# Run application
+# Standard version
 ./launch_whisper.sh
-# OR from menu: Applications → AudioVideo → Whisper Transcribe
-```
-
-### Manual Setup (All Platforms)
-```bash
-# Clone repository
-git clone https://github.com/sethshoultes/whisper-transcribe-pi.git
-cd whisper-transcribe-pi
-
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
-
-# Run Pi-optimized version
-python whisper_transcribe.py
-
-# Run universal version (Mac/Windows/Linux)
-python whisper_transcribe_universal.py
+./setup_pro.sh  # or ./install.sh for standard
 ```
 
-### macOS Specific
-```bash
-# No additional tools needed - uses built-in pbcopy for clipboard
-python whisper_transcribe_universal.py
-```
+### Key Locations
+- Settings: `~/.whisper_transcribe_pro.json`
+- Exports: `~/Documents/WhisperTranscriptions/`
+- Logs: `/tmp/whisper_pro.log`
 
-### Windows Specific
-```bash
-# No additional tools needed - uses built-in clip for clipboard
-python whisper_transcribe_universal.py
-```
-
-## Test Commands
-
-### Test Audio Input
-```bash
-# Test microphone detection
-python3 -c "import sounddevice as sd; print(sd.query_devices())"
-
-# Test USB microphone
-arecord -l  # Linux/Pi only
-arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
-
-# Test recording with sounddevice
-python3 -c "
-import sounddevice as sd
-import numpy as np
-print('Recording 3 seconds...')
-audio = sd.rec(int(3 * 16000), samplerate=16000, channels=1)
-sd.wait()
-print(f'Recorded {len(audio)} samples')
-print(f'Audio level: {np.abs(audio).mean():.4f}')
-"
-```
-
-### Test Whisper Model
-```bash
-# Test model loading
-python3 -c "import whisper; model = whisper.load_model('tiny'); print('Model loaded successfully')"
-```
-
-### Debug Application
-```bash
-# View debug logs
-tail -f /tmp/whisper_debug.log
-
-# Check if app is running
-ps aux | grep whisper_transcribe
-
-# Kill existing instances
-pkill -f whisper_transcribe.py
-```
-
-## Project Structure
-
-```
-whisper-transcribe-pi/
-├── whisper_transcribe.py          # Main Pi-optimized application
-├── whisper_transcribe_universal.py # Cross-platform version
-├── launch_whisper.sh              # Launcher script with venv
-├── install.sh                     # Automated installer for Pi
-├── requirements.txt               # Python dependencies
-├── whisper-transcribe.desktop     # Desktop entry for Pi menu
-├── icons/                         # Application icons
-│   ├── whisper-icon.png         # PNG icon (256x256)
-│   ├── whisper-icon.svg         # SVG source
-│   └── create_icon.py           # Icon generator script
-├── README.md                      # User documentation
-├── MARKETING.md                   # Marketing strategy document
-├── CLAUDE.md                      # This file
-├── LICENSE                        # MIT License
-└── .gitignore                    # Git ignore rules
-```
-
-## Key Technical Decisions
-
-### Audio Processing
-- **Sample Rate Handling**: Devices often use 44.1kHz, but Whisper needs 16kHz
-  - Solution: Automatic resampling using scipy.signal.resample()
-- **USB Mic Detection**: Prioritizes USB mics over built-in audio
-  - Searches for 'usb' in device names
-  - Falls back to default input if no USB found
-- **Buffer Management**: Uses local buffers per recording to avoid race conditions
-
-### Whisper Model Selection
-- **Model Choice**: Uses "tiny" model (39MB)
-  - Reasons: Pi memory constraints, 2-3s transcription time, good accuracy
-  - Alternatives: "base" (74MB), "small" (244MB) for better accuracy but slower
-
-### GUI Architecture
-- **Framework**: tkinter (built into Python)
-  - Reasons: No extra dependencies, cross-platform, lightweight
-- **Window Design**: Floating, always-on-top, semi-transparent
-  - 500x400px default size
-  - Position: top-left corner (+10+10)
-- **Thread Safety**: Background transcription with queue-based UI updates
-  - Recording happens in separate thread
-  - Transcription in background thread
-  - UI updates via queue.Queue() with 50ms polling
-
-### Clipboard Integration
-- **Platform Detection**: Uses platform.system() for OS detection
-- **Methods**:
-  - Linux: xclip with fallback to xsel
-  - macOS: pbcopy (built-in)
-  - Windows: clip (built-in)
-- **Timeout**: 1 second timeout on all clipboard operations
-
-## Common Issues and Solutions
-
-### Audio Issues
-
-**Problem**: "paInvalidSampleRate" error
-```python
-# Solution: Already handled - automatic sample rate detection
-self.device_sample_rate = int(device['default_samplerate'])
-# Then resample in transcribe() method
-```
-
-**Problem**: "error opening inputS"
-```bash
-# Check for other instances
-pkill -f whisper_transcribe.py
-# Verify mic is connected
-arecord -l
-```
-
-**Problem**: No audio detected
-```python
-# Check minimum audio threshold
-if len(local_audio_data) > 5:  # Minimum chunks for valid audio
-```
-
-### Installation Issues
-
-**Problem**: pyaudio build fails
-```bash
-# Install system dependency
-sudo apt install portaudio19-dev
-```
-
-**Problem**: scipy not found
-```bash
-pip install scipy
-```
-
-### Performance Issues
-
-**Problem**: Slow transcription
-```python
-# Use smaller model
-model = whisper.load_model("tiny")  # Instead of "base" or larger
-```
-
-**Problem**: High memory usage
-```python
-# Model is loaded once and reused
-def load_model(self):
-    self.model = whisper.load_model("tiny")  # Cached in memory
-```
-
-## Development Guidelines
+## 🛠️ Development Guidelines
 
 ### Code Style
-- Use 4-space indentation
-- Follow PEP 8 naming conventions
-- Add docstrings for public methods
-- Handle exceptions with specific error messages
+- 4-space indentation
+- Snake_case for functions/variables
+- CamelCase for classes
+- Use type hints where possible
+- Handle exceptions with specific messages
 
-### Threading Rules
-1. Recording happens in separate thread
-2. Transcription stays in recording thread (background)
-3. UI updates only via queue
-4. Never update tkinter from background threads directly
+### Testing Changes
+```bash
+# Quick test
+source venv/bin/activate
+python3 whisper_transcribe_pro.py
 
-### Error Handling Pattern
-```python
-try:
-    # Risky operation
-    stream = sd.InputStream(...)
-except Exception as e:
-    print(f"Error: {str(e)[:50]}")  # Truncate long errors
-    self.status.config(text="Error occurred")
-    # Graceful degradation
+# Check audio devices
+python3 -c "import sounddevice as sd; print(sd.query_devices())"
+
+# Test microphone
+arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 ```
 
-### Platform-Specific Code
-```python
-# Always check platform before using OS-specific features
-if platform.system() == "Darwin":  # macOS
-    subprocess.run(['pbcopy'], ...)
-elif platform.system() == "Windows":
-    subprocess.run(['clip'], ...)
-else:  # Linux/Unix
-    subprocess.run(['xclip'], ...)
+## 🔧 Common Tasks
+
+### Debugging Audio Issues
+1. Check USB mic detection in `detect_usb_microphone()` (Line ~250)
+2. Verify sample rate handling in `transcribe_audio()` (Line ~300)
+3. Test with inline microphone test panel (Lines 1359-1513)
+
+### Modifying Settings
+1. Update `SettingsWindow` class (Lines 842-1594)
+2. Add to settings dict in `Settings` class (Line ~140)
+3. Implement `apply_settings()` for immediate application
+
+### Adding Features
+1. Pro features go in `whisper_transcribe_pro.py`
+2. Update `PROJECT_MAP.md` with line references
+3. Document in README.md user-facing changes
+4. Test on actual Raspberry Pi hardware
+
+## ⚠️ Critical Rules
+
+### NO Mock Data
+- Always use REAL audio devices
+- Show REAL error messages
+- No fallback responses that hide problems
+- Test with actual hardware
+
+### Platform Specifics
+- Target Raspberry Pi 4/5 with USB microphones
+- Handle 44.1kHz → 16kHz resampling
+- ASCII only (no emoji) for Pi compatibility
+- Consider Wayland limitations (no window opacity)
+
+## 🐛 Known Issues
+
+| Issue | Status | Solution |
+|-------|--------|----------|
+| Emoji display on Pi | ✅ Fixed | Using ASCII alternatives |
+| Window opacity | ✅ Removed | Wayland incompatible |
+| Settings not applying | ✅ Fixed | Immediate application implemented |
+| Modal test window | ✅ Fixed | Inline panel instead |
+
+## 📝 Git Workflow
+
+```bash
+# Feature branch
+git checkout -b feature/new-feature
+
+# Commit with clear message
+git add -A
+git commit -m "Add feature: description"
+
+# Push and create PR
+git push -u origin feature/new-feature
 ```
 
-## Performance Optimization
+## 🔍 Quick Reference
 
-### Audio Processing
-- **Blocksize**: 512 samples (balanced latency vs CPU)
-- **Skip ALSA errors**: Continue on -9999 errors
-- **Local buffers**: Avoid shared state between recordings
+### Key Classes
+- `WhisperTranscribePro` - Main application (Line 132)
+- `SettingsWindow` - Settings interface (Line 842) 
+- `HailoIntegration` - AI enhancement (Line 55)
+- `Settings` - Config management (Line 140)
 
-### Whisper Optimization
-- **Language hint**: language="en" speeds up processing
-- **FP16 disabled**: fp16=False for CPU compatibility
-- **Model caching**: Load once, reuse for all transcriptions
+### Important Methods
+- `record_audio()` - Audio capture (Line ~400)
+- `transcribe_audio()` - Whisper processing (Line ~450)
+- `export_transcription()` - Save to file (Line ~620)
+- `toggle_test_microphone()` - Inline test (Line 1359)
 
-### UI Responsiveness
-- **Queue polling**: 50ms interval for smooth updates
-- **Background threads**: Never block main UI thread
-- **Status updates**: Immediate feedback for all actions
-
-## Platform-Specific Considerations
-
-### Raspberry Pi
-- Optimized for Pi 4/5 hardware
-- Handles USB mic quirks
-- Desktop integration via .desktop file
-- Assumes Debian-based OS
-
-### macOS
-- Window transparency may behave differently
-- Command key bindings could be added
-- Retina display scaling handled by tkinter
-
-### Windows
-- Paths use forward slashes (Python handles conversion)
-- No sudo required for installation
-- Windows Defender may flag first run
-
-### Linux (Generic)
-- Requires X11 or Wayland with XWayland
-- May need to install xclip: `sudo apt install xclip`
-- Different audio systems (ALSA, PulseAudio, PipeWire) handled by sounddevice
-
-## Important Files
-
-### Core Application
-- `whisper_transcribe.py`: Main app logic, Pi-optimized
-- `whisper_transcribe_universal.py`: Cross-platform version with UniversalClipboard class
-
-### Configuration
-- `requirements.txt`: Python package versions
-- `.gitignore`: Excludes venv, cache, audio files
-
-### Installation
-- `install.sh`: Automated Pi installer
-- `launch_whisper.sh`: Venv activation and launch
-- `whisper-transcribe.desktop`: Menu integration
-
-## Integration Examples
-
-### Voice-Controlled Pi Projects
-```python
-# Use transcribed text for commands
-if "lights on" in transcription.lower():
-    GPIO.output(LED_PIN, GPIO.HIGH)
-```
-
-### Accessibility Tools
-```python
-# Auto-paste to active window
-UniversalClipboard.copy(text)
-# User presses Ctrl+V to paste
-```
-
-### Education/Research
-```python
-# Save all transcriptions with timestamps
-with open("lecture_notes.txt", "a") as f:
-    f.write(f"[{timestamp}] {text}\n")
-```
-
-## Debugging Tips
-
-1. **Check logs first**: `/tmp/whisper_debug.log`
-2. **Verify audio device**: `sd.query_devices()`
-3. **Test model separately**: Load model in Python REPL
-4. **Monitor memory**: `htop` or `top` during transcription
-5. **Check clipboard**: Test clipboard commands manually
-
-## Future Improvements to Consider
-
-- [ ] Add language selection dropdown
-- [ ] Support for larger Whisper models (user choice)
-- [ ] Hotkey customization
-- [ ] Dark mode theme
-- [ ] Export transcriptions to various formats
-- [ ] Real-time streaming transcription
-- [ ] Multi-microphone support
-- [ ] Speaker diarization
-
-## Testing Checklist
-
-When making changes, test:
-- [ ] Installation on fresh Pi
-- [ ] USB mic detection
-- [ ] Recording starts/stops
-- [ ] Transcription appears in window
-- [ ] Clipboard copy works
-- [ ] Desktop menu entry works
-- [ ] Cross-platform compatibility
-- [ ] Memory usage stays stable
-- [ ] No zombie processes after exit
-
-## Support Resources
-
-- GitHub Issues: https://github.com/sethshoultes/whisper-transcribe-pi/issues
-- Whisper Documentation: https://github.com/openai/whisper
-- Raspberry Pi Forums: https://forums.raspberrypi.com/
-- OpenAI Community: https://community.openai.com/
+See `PROJECT_MAP.md` for complete line references and component details.
