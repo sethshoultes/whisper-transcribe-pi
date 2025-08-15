@@ -3,3 +3,5 @@ sounddevice>=0.4.6
 numpy>=1.24.0
 scipy>=1.10.0
 pyaudio>=0.2.11
+customtkinter>=5.2.0
+pillow>=9.0.0
