@@ -256,11 +256,13 @@ class LocalAI:
     
     def start_server(self, model_name=None):
         """Start the local LLM server"""
-        if self.server_process and self.server_process.poll() is None:
+        # Check if any server is running (ours or external)
+        if self.is_server_running():
+            print(f"DEBUG: Server already running, stopping it first")
             # Server already running, need to restart with new model
             self.stop_server()
             import time
-            time.sleep(1)
+            time.sleep(2)  # Give more time for shutdown
             
         try:
             env_dir = self.llm_dir / "env"
@@ -276,6 +278,9 @@ class LocalAI:
             # Add model parameter if specified
             if model_name:
                 cmd.extend(["--model", model_name])
+                print(f"DEBUG: Starting server with command: {' '.join(cmd)}")
+            else:
+                print(f"DEBUG: No model specified, using default")
             
             # Start server in background
             self.server_process = subprocess.Popen(
@@ -291,8 +296,11 @@ class LocalAI:
             
             if self.server_process.poll() is None:
                 self.current_model = model_name if model_name else "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+                print(f"DEBUG: Server started successfully, current_model set to: {self.current_model}")
                 return True
-            return False
+            else:
+                print(f"DEBUG: Server failed to start, process exited")
+                return False
             
         except Exception as e:
             logging.error(f"Failed to start AI server: {e}")
@@ -300,9 +308,28 @@ class LocalAI:
     
     def stop_server(self):
         """Stop the local LLM server"""
+        # First try to stop our tracked process
         if self.server_process:
             self.server_process.terminate()
             self.server_process = None
+        
+        # Also kill any other llm_api_server processes on port 7861
+        try:
+            # Find and kill any process using port 7861
+            result = subprocess.run(
+                ["lsof", "-ti", ":7861"],
+                capture_output=True,
+                text=True
+            )
+            if result.stdout.strip():
+                pids = result.stdout.strip().split('\n')
+                for pid in pids:
+                    try:
+                        subprocess.run(["kill", pid], check=False)
+                    except:
+                        pass
+        except:
+            pass
     
     def is_server_running(self):
         """Check if server is running"""
@@ -1007,7 +1034,9 @@ class WhisperTranscribePro(ctk.CTk):
         
         if not self.local_ai.is_server_running():
             self.show_notification("Starting AI server...", "info")
-            if not self.local_ai.start_server():
+            # Get the selected model from settings
+            selected_model = self.settings.settings.get("ai_model", None)
+            if not self.local_ai.start_server(selected_model):
                 self.show_notification("Failed to start AI server", "error")
                 return
         
@@ -1031,8 +1060,9 @@ class WhisperTranscribePro(ctk.CTk):
             return
         
         if not self.local_ai.is_server_running():
-            # Try to start server automatically
-            if not self.local_ai.start_server():
+            # Try to start server automatically with selected model
+            selected_model = self.settings.settings.get("ai_model", None)
+            if not self.local_ai.start_server(selected_model):
                 return
         
         # Process in background thread
@@ -2222,9 +2252,10 @@ class SettingsWindow(ctk.CTkToplevel):
         """Start the AI server"""
         try:
             model_name = self.ai_model_combo.get() if hasattr(self, 'ai_model_combo') else None
+            print(f"DEBUG: Starting server with model: {model_name}")  # Debug
             success = self.parent.local_ai.start_server(model_name)
             if success:
-                self.parent.show_notification("AI server started successfully!")
+                self.parent.show_notification(f"AI server started with {model_name}")
                 self.update_ai_server_status()
             else:
                 self.parent.show_notification("Failed to start AI server", "error")
