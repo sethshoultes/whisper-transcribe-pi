@@ -238,6 +238,7 @@ class LocalAI:
         self.server_process = None
         self.llm_dir = Path.home() / "simple-llm-server"
         self.models_dir = self.llm_dir / "models"
+        self.current_model = None
         
     def is_enabled(self):
         """Check if AI is enabled in settings"""
@@ -288,7 +289,10 @@ class LocalAI:
             import time
             time.sleep(3)  # Give more time for model loading
             
-            return self.server_process.poll() is None
+            if self.server_process.poll() is None:
+                self.current_model = model_name if model_name else "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+                return True
+            return False
             
         except Exception as e:
             logging.error(f"Failed to start AI server: {e}")
@@ -309,9 +313,29 @@ class LocalAI:
         try:
             import requests
             response = requests.get("http://localhost:7861/health", timeout=2)
-            return response.status_code == 200
+            if response.status_code == 200:
+                # Get the actual model from the server
+                data = response.json()
+                if 'model' in data:
+                    # Extract just the model filename from the path
+                    model_path = data['model']
+                    self.current_model = model_path.split('/')[-1] if '/' in model_path else model_path
+                return True
+            return False
         except:
             return False
+    
+    def get_current_model(self):
+        """Get the currently loaded model name"""
+        if self.is_server_running() and self.current_model:
+            # Return shortened name for display
+            model_map = {
+                "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf": "TinyLlama",
+                "phi-2.Q4_K_M.gguf": "Phi-2",
+                "mistral-7b-instruct-v0.2.Q4_K_M.gguf": "Mistral-7B"
+            }
+            return model_map.get(self.current_model, self.current_model.replace(".gguf", ""))
+        return None
     
     def send_to_ai(self, text):
         """Send text to local AI and get response"""
@@ -425,6 +449,9 @@ class WhisperTranscribePro(ctk.CTk):
         
         # Start UI update loop
         self.process_ui_queue()
+        
+        # Start periodic AI status check
+        self.check_ai_status()
     
     def setup_audio_device(self):
         """Configure audio input device"""
@@ -593,9 +620,6 @@ class WhisperTranscribePro(ctk.CTk):
         )
         self.ai_display.grid(row=1, column=0, sticky="nsew")
         
-        # Show/hide AI panel based on setting
-        self.update_ai_panel_visibility()
-        
         # Action Buttons Frame
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
@@ -629,10 +653,19 @@ class WhisperTranscribePro(ctk.CTk):
         # Info labels
         self.model_label = ctk.CTkLabel(
             self.bottom_frame,
-            text=f"Model: {self.settings.settings['model']}",
+            text=f"Whisper: {self.settings.settings['model']}",
             font=ctk.CTkFont(size=10)
         )
         self.model_label.grid(row=0, column=0, padx=5, pady=2)
+        
+        # AI Model label
+        self.ai_model_label = ctk.CTkLabel(
+            self.bottom_frame,
+            text="AI: Not Running",
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        )
+        self.ai_model_label.grid(row=0, column=1, padx=5, pady=2)
         
         # Hailo status label (shows actual enabled state, not just availability)
         hailo_status = "Hailo: ON" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "Hailo: OFF"
@@ -645,6 +678,9 @@ class WhisperTranscribePro(ctk.CTk):
             text_color=hailo_color
         )
         self.hailo_label.grid(row=0, column=2, padx=5, pady=2)
+        
+        # Show/hide AI panel based on setting (after all UI elements are created)
+        self.update_ai_panel_visibility()
         
         # Keyboard bindings
         self.bind('<r>', lambda e: self.toggle_recording())
@@ -1052,6 +1088,25 @@ class WhisperTranscribePro(ctk.CTk):
             self.ai_frame.grid_forget()
             self.content_frame.grid_columnconfigure(0, weight=1)  # Full width for transcription
             self.content_frame.grid_columnconfigure(1, weight=0)  # No AI panel
+        
+        # Update AI model label
+        self.update_ai_model_label()
+    
+    def update_ai_model_label(self):
+        """Update the AI model label with current model"""
+        current_model = self.local_ai.get_current_model()
+        if current_model:
+            self.ai_model_label.configure(text=f"AI: {current_model}", text_color="green")
+        elif self.local_ai.is_enabled():
+            self.ai_model_label.configure(text="AI: Starting...", text_color="orange")
+        else:
+            self.ai_model_label.configure(text="AI: Not Running", text_color="gray")
+    
+    def check_ai_status(self):
+        """Periodically check and update AI server status"""
+        self.update_ai_model_label()
+        # Check every 5 seconds
+        self.after(5000, self.check_ai_status)
     
     def show_notification(self, message, notification_type="info"):
         """Show temporary notification"""
@@ -2189,9 +2244,22 @@ class SettingsWindow(ctk.CTkToplevel):
         """Update AI server status display"""
         if hasattr(self, 'server_status_label'):
             is_running = self.parent.local_ai.is_server_running()
-            status_text = "Server Status: Running" if is_running else "Server Status: Not Running"
-            status_color = "green" if is_running else "gray"
+            current_model = self.parent.local_ai.get_current_model()
+            
+            if is_running and current_model:
+                status_text = f"Server Status: Running ({current_model})"
+                status_color = "green"
+            elif is_running:
+                status_text = "Server Status: Running"
+                status_color = "green"
+            else:
+                status_text = "Server Status: Not Running"
+                status_color = "gray"
+            
             self.server_status_label.configure(text=status_text, text_color=status_color)
+            
+            # Update main UI model label
+            self.parent.update_ai_model_label()
 
 def main():
     """Main entry point"""
