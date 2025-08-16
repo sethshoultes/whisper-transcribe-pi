@@ -91,5 +91,44 @@
     "confidence_scores": [],
     "first_seen": "2025-08-16T10:34:39.164849",
     "last_seen": "2025-08-16T10:34:39.164849"
+  },
+  "transcription_request_10_words": {
+    "intent": "transcription_request",
+    "average_word_count": 10,
+    "examples": [
+      "This is the memory working. Let's do a test one."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5210007727146149
+    ],
+    "first_seen": "2025-08-16T10:51:01.534434",
+    "last_seen": "2025-08-16T10:51:01.534434"
+  },
+  "transcription_request_4_words": {
+    "intent": "transcription_request",
+    "average_word_count": 4,
+    "examples": [
+      "Remember he tests too."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.2527211308479309
+    ],
+    "first_seen": "2025-08-16T10:51:38.579484",
+    "last_seen": "2025-08-16T10:51:38.579484"
+  },
+  "general_3_words": {
+    "intent": "general",
+    "average_word_count": 3,
+    "examples": [
+      "Test transcription only"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.95
+    ],
+    "first_seen": "2025-08-16T10:58:45.236331",
+    "last_seen": "2025-08-16T10:58:45.236331"
   }
 }

@@ -139,5 +139,96 @@
     "audio_metadata": {
       "confidence": 0.95
     }
+  },
+  {
+    "timestamp": "2025-08-16T10:51:01.498195",
+    "user": "This is the memory working. Let's do a test one.",
+    "assistant": "Yes, let's do it.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmp01cklwna.wav",
+      "confidence_score": 0.5210007727146149,
+      "audio_duration": 4.435,
+      "processing_time": 1755363060.6365857,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 4.24,
+          "text": " This is the memory working. Let's do a test one.",
+          "tokens": [
+            50364,
+            639,
+            307,
+            264,
+            4675,
+            1364,
+            13,
+            961,
+            311,
+            360,
+            257,
+            1500,
+            472,
+            13,
+            50576
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.47899922728538513,
+          "compression_ratio": 0.8888888888888888,
+          "no_speech_prob": 0.03015211597084999
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T10:51:38.536241",
+    "user": "Remember he tests too.",
+    "assistant": "Remember he tests too.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpc3h1a59c.wav",
+      "confidence_score": 0.2527211308479309,
+      "audio_duration": 1.996875,
+      "processing_time": 1755363098.0069003,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 2.0,
+          "text": " Remember he tests too.",
+          "tokens": [
+            50364,
+            5459,
+            415,
+            6921,
+            886,
+            13,
+            50464
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.7472788691520691,
+          "compression_ratio": 0.7333333333333333,
+          "no_speech_prob": 0.08135362714529037
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T10:58:45.197467",
+    "user": "Test transcription only",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "confidence_score": 0.95,
+      "audio_duration": 2.0
+    }
   }
 ]

@@ -150,7 +150,8 @@ class VoiceMemoryManager:
                             success: bool = True,
                             processing_times: Optional[Dict] = None,
                             audio_quality: Optional[Dict] = None,
-                            context_objects: Optional[List[str]] = None) -> Dict[str, Any]:
+                            context_objects: Optional[List[str]] = None,
+                            is_transcription_only: bool = False) -> Dict[str, Any]:
         """
         Add a complete voice interaction to both memory systems
         
@@ -164,6 +165,7 @@ class VoiceMemoryManager:
             processing_times: Breakdown of processing times
             audio_quality: Audio quality metrics
             context_objects: Objects detected in the scene
+            is_transcription_only: True if this is just a transcription without AI response
             
         Returns:
             Dictionary with memory operation results
@@ -213,11 +215,18 @@ class VoiceMemoryManager:
                 # Add to Conversation Memory
                 if self.conversation_memory:
                     try:
+                        # For transcription-only, mark as such
+                        effective_response = assistant_response
+                        effective_command_type = command_type
+                        if is_transcription_only:
+                            effective_response = assistant_response or "[Transcription Only]"
+                            effective_command_type = "transcription"
+                        
                         conversation_id = self.conversation_memory.add_voice_conversation(
                             user_input=user_input,
-                            assistant_response=assistant_response,
+                            assistant_response=effective_response,
                             agent_used=agent_used,
-                            command_type=command_type,
+                            command_type=effective_command_type,
                             success=success,
                             response_time=time.time() - start_time,
                             metadata=audio_metadata,

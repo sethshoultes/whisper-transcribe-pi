@@ -1346,6 +1346,20 @@ class WhisperTranscribePro(ctk.CTk):
                 'timestamp': time.time()
             }
             
+            # IMPORTANT: Also immediately save to memory even without AI response
+            # This ensures transcriptions are saved even when AI is disabled
+            try:
+                self.voice_memory.add_voice_interaction(
+                    user_input=text,
+                    assistant_response="",  # No AI response yet
+                    audio_metadata=audio_metadata,
+                    processing_times={'transcription': time.time() - audio_metadata.get('processing_time', time.time())},
+                    is_transcription_only=True  # Flag to indicate this is transcription without AI
+                )
+                logging.debug("Voice transcription immediately saved to memory")
+            except Exception as save_error:
+                logging.error(f"Failed to immediately save transcription: {save_error}")
+            
             logging.debug("Voice transcription stored in pending memory")
             
         except Exception as e:
@@ -1442,7 +1456,7 @@ class WhisperTranscribePro(ctk.CTk):
             self.memory_label.configure(text=memory_status, text_color=memory_color)
     
     def open_memory_menu(self):
-        """Open voice memory management menu"""
+        """Open voice memory management menu with conversation history"""
         if not VOICE_MEMORY_AVAILABLE:
             self.show_notification("Voice Memory system not available")
             return
@@ -1450,15 +1464,15 @@ class WhisperTranscribePro(ctk.CTk):
         # Create memory menu window
         memory_window = ctk.CTkToplevel(self)
         memory_window.title("Voice Memory Management")
-        memory_window.geometry("500x400")
+        memory_window.geometry("750x650")  # Larger size for conversation list
         memory_window.transient(self)
         memory_window.grab_set()
         
         # Center the window
         memory_window.update_idletasks()
-        x = (memory_window.winfo_screenwidth() // 2) - (250)
-        y = (memory_window.winfo_screenheight() // 2) - (200)
-        memory_window.geometry(f"500x400+{x}+{y}")
+        x = (memory_window.winfo_screenwidth() // 2) - (375)
+        y = (memory_window.winfo_screenheight() // 2) - (325)
+        memory_window.geometry(f"750x650+{x}+{y}")
         
         # Title
         title_label = ctk.CTkLabel(
@@ -1466,7 +1480,7 @@ class WhisperTranscribePro(ctk.CTk):
             text="Voice Memory Management",
             font=ctk.CTkFont(size=18, weight="bold")
         )
-        title_label.pack(pady=20)
+        title_label.pack(pady=10)
         
         # Status section
         status_frame = ctk.CTkFrame(memory_window)
@@ -1492,7 +1506,24 @@ class WhisperTranscribePro(ctk.CTk):
             font=ctk.CTkFont(size=12)
         ).pack(anchor="w", padx=20, pady=2)
         
-        # Actions section
+        # NEW: Conversations section - Show recent voice interactions
+        conv_frame = ctk.CTkFrame(memory_window)
+        conv_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        ctk.CTkLabel(
+            conv_frame,
+            text="Recent Voice Conversations:",
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        # Scrollable conversation list
+        conv_scroll = ctk.CTkScrollableFrame(conv_frame, height=250)
+        conv_scroll.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        # Load and display conversations
+        self._load_conversation_history(conv_scroll)
+        
+        # Actions section - Moved below conversations
         actions_frame = ctk.CTkFrame(memory_window)
         actions_frame.pack(fill="x", padx=20, pady=10)
         
@@ -1589,6 +1620,148 @@ class WhisperTranscribePro(ctk.CTk):
             
         except Exception as e:
             self.show_notification(f"Stats failed: {e}")
+    
+    def _load_conversation_history(self, parent_frame):
+        """Load and display conversation history in the memory dialog"""
+        if not hasattr(self, 'voice_memory') or not self.voice_memory:
+            ctk.CTkLabel(
+                parent_frame,
+                text="❌ Voice memory not available",
+                text_color="red"
+            ).pack(anchor="w", padx=10, pady=5)
+            return
+        
+        try:
+            # Get recent conversations from both memory systems
+            conversations = []
+            
+            # Try to get from conversation memory (SQLite)
+            try:
+                recent = self.voice_memory.conversation_memory.get_recent_conversations(limit=20)
+                for conv in recent:
+                    conversations.append({
+                        'timestamp': conv.get('timestamp'),
+                        'user_input': conv.get('user_input', ''),
+                        'assistant_response': conv.get('assistant_response', ''),
+                        'confidence': conv.get('transcription_confidence', 0.0),
+                        'source': 'database'
+                    })
+            except:
+                pass
+            
+            # Also check context memory (JSON)
+            try:
+                context_data = self.voice_memory.context_memory.get_recent_context(limit=20, voice_only=True)
+                for item in context_data:
+                    if isinstance(item, dict) and 'user' in item:
+                        conversations.append({
+                            'timestamp': item.get('timestamp', ''),
+                            'user_input': item.get('user', ''),
+                            'assistant_response': item.get('assistant', ''),
+                            'confidence': item.get('audio_metadata', {}).get('confidence_score', 0.0),
+                            'source': 'context'
+                        })
+            except:
+                pass
+            
+            # Also check transcription history if no memory conversations
+            if not conversations and hasattr(self, 'transcription_history'):
+                for i, text in enumerate(self.transcription_history[-10:]):
+                    conversations.append({
+                        'timestamp': f"Recent #{i+1}",
+                        'user_input': text,
+                        'assistant_response': "N/A",
+                        'confidence': 0.0,
+                        'source': 'history'
+                    })
+            
+            if not conversations:
+                ctk.CTkLabel(
+                    parent_frame,
+                    text="📭 No conversations found yet\nStart recording to build your conversation history!",
+                    text_color="gray",
+                    font=ctk.CTkFont(size=11)
+                ).pack(anchor="w", padx=10, pady=20)
+                return
+            
+            # Display each conversation
+            for i, conv in enumerate(conversations[:20]):  # Limit to 20 most recent
+                self._create_conversation_widget(parent_frame, conv, i)
+                
+        except Exception as e:
+            logging.error(f"Failed to load conversation history: {e}")
+            import traceback
+            traceback.print_exc()
+            ctk.CTkLabel(
+                parent_frame,
+                text=f"❌ Error loading conversations: {str(e)}",
+                text_color="red"
+            ).pack(anchor="w", padx=10, pady=5)
+    
+    def _create_conversation_widget(self, parent, conversation, index):
+        """Create a widget for a single conversation entry"""
+        # Container frame for this conversation
+        conv_frame = ctk.CTkFrame(parent)
+        conv_frame.pack(fill="x", padx=5, pady=3)
+        
+        # Parse conversation data
+        timestamp = conversation.get('timestamp', 'Unknown')
+        user_input = conversation.get('user_input', 'N/A')
+        ai_response = conversation.get('assistant_response', 'N/A')
+        confidence = conversation.get('confidence', 0.0)
+        source = conversation.get('source', 'unknown')
+        
+        # Format timestamp
+        try:
+            if isinstance(timestamp, str) and 'T' in timestamp:
+                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                time_str = dt.strftime("%m/%d %H:%M:%S")
+            else:
+                time_str = str(timestamp)
+        except:
+            time_str = str(timestamp)
+        
+        # Header with timestamp and confidence
+        header_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=5, pady=2)
+        
+        # Create header text with source indicator
+        source_icon = {"database": "💾", "context": "📝", "history": "📜"}.get(source, "❓")
+        header_text = f"{source_icon} #{index+1} - {time_str}"
+        if confidence > 0:
+            header_text += f" | Confidence: {confidence:.2%}"
+        
+        ctk.CTkLabel(
+            header_frame,
+            text=header_text,
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        ).pack(anchor="w", padx=5, pady=1)
+        
+        # User input
+        if user_input and user_input != 'N/A':
+            user_text = f"🎤 User: {user_input[:150]}{'...' if len(user_input) > 150 else ''}"
+            ctk.CTkLabel(
+                conv_frame,
+                text=user_text,
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                wraplength=650,
+                justify="left"
+            ).pack(anchor="w", padx=15, pady=2, fill="x")
+        
+        # AI response (if available)
+        if ai_response and ai_response != 'N/A':
+            ai_text = f"🤖 AI: {ai_response[:150]}{'...' if len(ai_response) > 150 else ''}"
+            ctk.CTkLabel(
+                conv_frame,
+                text=ai_text,
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                wraplength=650,
+                justify="left",
+                text_color="lightblue"
+            ).pack(anchor="w", padx=15, pady=2, fill="x")
     
     def _calculate_confidence(self, result: dict) -> float:
         """Calculate average confidence from Whisper result"""
