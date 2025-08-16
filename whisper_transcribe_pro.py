@@ -1457,118 +1457,169 @@ class WhisperTranscribePro(ctk.CTk):
     
     def open_memory_menu(self):
         """Open voice memory management menu with conversation history"""
+        logging.info("Memory menu button clicked - starting to open dialog")
+        
         if not VOICE_MEMORY_AVAILABLE:
+            logging.error("Voice Memory system not available")
             self.show_notification("Voice Memory system not available")
             return
+        
+        logging.info("Voice Memory is available, creating dialog window")
         
         # Create memory menu window
         memory_window = ctk.CTkToplevel(self)
         memory_window.title("Voice Memory Management")
-        memory_window.geometry("750x650")  # Larger size for conversation list
+        memory_window.geometry("750x600")  # Slightly narrower
         memory_window.transient(self)
-        memory_window.grab_set()
         
         # Center the window
         memory_window.update_idletasks()
-        x = (memory_window.winfo_screenwidth() // 2) - (375)
-        y = (memory_window.winfo_screenheight() // 2) - (325)
-        memory_window.geometry(f"750x650+{x}+{y}")
+        x = (memory_window.winfo_screenwidth() // 2) - 375
+        y = (memory_window.winfo_screenheight() // 2) - 300
+        memory_window.geometry(f"750x600+{x}+{y}")
         
-        # Title
-        title_label = ctk.CTkLabel(
-            memory_window,
+        logging.info("Memory dialog window created successfully")
+        
+        # Header frame with title and close button
+        header_frame = ctk.CTkFrame(memory_window)
+        header_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            header_frame,
             text="Voice Memory Management",
             font=ctk.CTkFont(size=18, weight="bold")
+        ).pack(side="left", padx=10)
+        
+        ctk.CTkButton(
+            header_frame,
+            text="✕ Close",
+            command=memory_window.destroy,
+            width=80,
+            height=30,
+            fg_color="transparent",
+            hover_color=("gray75", "gray25")
+        ).pack(side="right", padx=10)
+        
+        # Main container with proper scrolling
+        main_container = ctk.CTkFrame(memory_window)
+        main_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        
+        # Create scrollable frame with proper mouse wheel binding
+        main_scroll = ctk.CTkScrollableFrame(
+            main_container,
+            width=710,
+            height=480,
+            scrollbar_button_color=("gray55", "gray45"),
+            scrollbar_button_hover_color=("gray40", "gray60")
         )
-        title_label.pack(pady=10)
+        main_scroll.pack(fill="both", expand=True)
+        
+        # Enable mouse wheel scrolling on the frame and all children
+        def _on_mousewheel(event):
+            # Scroll the canvas directly
+            if hasattr(main_scroll, '_parent_canvas'):
+                main_scroll._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        # Bind mouse wheel to the scrollable frame
+        main_scroll.bind_all("<MouseWheel>", _on_mousewheel)
+        main_scroll.bind_all("<Button-4>", lambda e: _on_mousewheel(type('', (), {'delta': 120})()))
+        main_scroll.bind_all("<Button-5>", lambda e: _on_mousewheel(type('', (), {'delta': -120})()))
         
         # Status section
-        status_frame = ctk.CTkFrame(memory_window)
-        status_frame.pack(fill="x", padx=20, pady=10)
+        status_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+        status_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(
             status_frame,
-            text="System Status:",
+            text="System Status",
             font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(anchor="w", padx=10, pady=5)
+        ).pack(anchor="w", pady=5)
+        
+        status_content = ctk.CTkFrame(status_frame)
+        status_content.pack(fill="x", padx=20, pady=5)
         
         if hasattr(self, 'voice_memory') and self.voice_memory:
-            status_text = "✅ Voice Memory is Active"
+            status_text = "Voice Memory is Active"
             status_color = "green"
+            status_icon = "✓"
         else:
-            status_text = "❌ Voice Memory is Inactive"
+            status_text = "Voice Memory is Inactive"
             status_color = "red"
+            status_icon = "✗"
         
         ctk.CTkLabel(
-            status_frame,
-            text=status_text,
+            status_content,
+            text=f"{status_icon} {status_text}",
             text_color=status_color,
             font=ctk.CTkFont(size=12)
-        ).pack(anchor="w", padx=20, pady=2)
+        ).pack(anchor="w")
         
-        # NEW: Conversations section - Show recent voice interactions
-        conv_frame = ctk.CTkFrame(memory_window)
-        conv_frame.pack(fill="both", expand=True, padx=20, pady=10)
-        
-        ctk.CTkLabel(
-            conv_frame,
-            text="Recent Voice Conversations:",
-            font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(anchor="w", padx=10, pady=5)
-        
-        # Scrollable conversation list
-        conv_scroll = ctk.CTkScrollableFrame(conv_frame, height=250)
-        conv_scroll.pack(fill="both", expand=True, padx=10, pady=5)
-        
-        # Load and display conversations
-        self._load_conversation_history(conv_scroll)
-        
-        # Actions section - Moved below conversations
-        actions_frame = ctk.CTkFrame(memory_window)
-        actions_frame.pack(fill="x", padx=20, pady=10)
+        # Quick Actions section
+        actions_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+        actions_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(
             actions_frame,
-            text="Quick Actions:",
+            text="Quick Actions",
             font=ctk.CTkFont(size=14, weight="bold")
-        ).pack(anchor="w", padx=10, pady=5)
+        ).pack(anchor="w", pady=5)
         
-        # Action buttons
-        button_frame = ctk.CTkFrame(actions_frame)
-        button_frame.pack(fill="x", padx=20, pady=10)
+        # Action buttons in horizontal layout
+        button_container = ctk.CTkFrame(actions_frame)
+        button_container.pack(fill="x", padx=20, pady=5)
         
         ctk.CTkButton(
-            button_frame,
-            text="Export Memory Data",
+            button_container,
+            text="Export Data",
             command=lambda: self._quick_export_memory(),
-            width=200,
-            height=35
-        ).pack(pady=5)
+            width=140,
+            height=32
+        ).pack(side="left", padx=5)
         
         ctk.CTkButton(
-            button_frame,
-            text="View Memory Statistics",
+            button_container,
+            text="View Stats",
             command=lambda: self._quick_show_memory_stats(),
-            width=200,
-            height=35
-        ).pack(pady=5)
+            width=140,
+            height=32
+        ).pack(side="left", padx=5)
         
         ctk.CTkButton(
-            button_frame,
-            text="Open Memory Settings",
+            button_container,
+            text="Settings",
             command=lambda: [memory_window.destroy(), self.open_settings()],
-            width=200,
-            height=35
-        ).pack(pady=5)
+            width=140,
+            height=32
+        ).pack(side="left", padx=5)
         
-        # Close button
-        ctk.CTkButton(
-            memory_window,
-            text="Close",
-            command=memory_window.destroy,
-            width=100,
-            height=30
-        ).pack(pady=20)
+        # Conversations section
+        conv_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+        conv_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            conv_frame,
+            text="Recent Voice Conversations",
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).pack(anchor="w", pady=5)
+        
+        logging.info("Loading conversation history")
+        
+        # Load and display conversations in a contained frame
+        conv_container = ctk.CTkFrame(conv_frame)
+        conv_container.pack(fill="both", expand=True, padx=20, pady=5)
+        
+        self._load_conversation_history(conv_container)
+        
+        logging.info("Finished loading conversation history")
+        
+        # Unbind mousewheel when window is destroyed
+        def on_close():
+            main_scroll.unbind_all("<MouseWheel>")
+            main_scroll.unbind_all("<Button-4>")
+            main_scroll.unbind_all("<Button-5>")
+            memory_window.destroy()
+        
+        memory_window.protocol("WM_DELETE_WINDOW", on_close)
     
     def _quick_export_memory(self):
         """Quick export memory function"""
@@ -1623,13 +1674,18 @@ class WhisperTranscribePro(ctk.CTk):
     
     def _load_conversation_history(self, parent_frame):
         """Load and display conversation history in the memory dialog"""
+        logging.info("Starting to load conversation history for memory dialog")
+        
         if not hasattr(self, 'voice_memory') or not self.voice_memory:
+            logging.error("Voice memory not available in _load_conversation_history")
             ctk.CTkLabel(
                 parent_frame,
                 text="❌ Voice memory not available",
                 text_color="red"
             ).pack(anchor="w", padx=10, pady=5)
             return
+        
+        logging.info("Voice memory is available, proceeding to load conversations")
         
         try:
             # Get recent conversations from both memory systems
@@ -1638,17 +1694,21 @@ class WhisperTranscribePro(ctk.CTk):
             # Try to get from conversation memory (SQLite)
             try:
                 recent = self.voice_memory.conversation_memory.get_recent(limit=20, session_only=False)
-                for conv in recent:
+                logging.info(f"Retrieved {len(recent)} conversations from database")
+                for i, conv in enumerate(recent):
                     confidence = conv.get('transcription_confidence', 0.0)
                     if confidence is None:
                         confidence = 0.0
+                    
+                    # Use correct field names - mapped in get_recent method
                     conversations.append({
                         'timestamp': conv.get('timestamp'),
-                        'user_input': conv.get('user_input', ''),
-                        'assistant_response': conv.get('assistant_response', ''),
+                        'user_input': conv.get('user', ''),  # Note: 'user' not 'user_input'
+                        'assistant_response': conv.get('assistant', ''),  # Note: 'assistant' not 'assistant_response'
                         'confidence': confidence,
                         'source': 'database'
                     })
+                    logging.debug(f"Added database conversation {i+1}: {conv.get('user', '')[:50]}...")
             except Exception as e:
                 logging.error(f"Failed to load from conversation memory: {e}")
                 import traceback
@@ -1667,8 +1727,8 @@ class WhisperTranscribePro(ctk.CTk):
                             
                             conversations.append({
                                 'timestamp': conv.get('timestamp', ''),
-                                'user_input': conv.get('user', ''),
-                                'assistant_response': conv.get('assistant', ''),
+                                'user_input': conv.get('user', ''),  # Correct field for context memory
+                                'assistant_response': conv.get('assistant', ''),  # Correct field for context memory
                                 'confidence': confidence,
                                 'source': 'context'
                             })
@@ -1690,13 +1750,16 @@ class WhisperTranscribePro(ctk.CTk):
                     })
             
             if not conversations:
+                logging.warning("No conversations found to display in memory dialog")
                 ctk.CTkLabel(
                     parent_frame,
-                    text="📭 No conversations found yet\nStart recording to build your conversation history!",
+                    text="[EMPTY] No conversations found yet\nStart recording to build your conversation history!",
                     text_color="gray",
                     font=ctk.CTkFont(size=11)
                 ).pack(anchor="w", padx=10, pady=20)
                 return
+            else:
+                logging.info(f"Found {len(conversations)} conversations to display")
             
             # Display each conversation
             logging.info(f"Displaying {len(conversations[:20])} conversations in memory dialog")
@@ -1709,7 +1772,7 @@ class WhisperTranscribePro(ctk.CTk):
                     # Create a simple error widget
                     ctk.CTkLabel(
                         parent_frame,
-                        text=f"❌ Error displaying conversation {i+1}",
+                        text=f"[ERROR] Error displaying conversation {i+1}",
                         text_color="red"
                     ).pack(anchor="w", padx=10, pady=2)
             
@@ -1718,7 +1781,7 @@ class WhisperTranscribePro(ctk.CTk):
                 summary_text = f"Found {len(conversations)} conversations"
                 ctk.CTkLabel(
                     parent_frame,
-                    text=f"📊 {summary_text}",
+                    text=f"[STATS] {summary_text}",
                     text_color="lightblue",
                     font=ctk.CTkFont(size=10)
                 ).pack(anchor="w", padx=10, pady=5)
@@ -1729,7 +1792,7 @@ class WhisperTranscribePro(ctk.CTk):
             traceback.print_exc()
             ctk.CTkLabel(
                 parent_frame,
-                text=f"❌ Error loading conversations: {str(e)}",
+                text=f"[ERROR] Error loading conversations: {str(e)}",
                 text_color="red"
             ).pack(anchor="w", padx=10, pady=5)
     
@@ -1760,8 +1823,8 @@ class WhisperTranscribePro(ctk.CTk):
         header_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
         header_frame.pack(fill="x", padx=5, pady=2)
         
-        # Create header text with source indicator
-        source_icon = {"database": "💾", "context": "📝", "history": "📜"}.get(source, "❓")
+        # Create header text with source indicator (ASCII for Pi compatibility)
+        source_icon = {"database": "[DB]", "context": "[JSON]", "history": "[HIST]"}.get(source, "[UNK]")
         header_text = f"{source_icon} #{index+1} - {time_str}"
         if confidence > 0:
             header_text += f" | Confidence: {confidence:.2%}"
@@ -1773,30 +1836,57 @@ class WhisperTranscribePro(ctk.CTk):
             text_color="gray"
         ).pack(anchor="w", padx=5, pady=1)
         
-        # User input
+        # User input - use textbox for better text wrapping
         if user_input and user_input != 'N/A':
-            user_text = f"🎤 User: {user_input[:150]}{'...' if len(user_input) > 150 else ''}"
+            user_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+            user_frame.pack(fill="x", padx=15, pady=2)
+            
             ctk.CTkLabel(
-                conv_frame,
-                text=user_text,
+                user_frame,
+                text="User:",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color="lightblue"
+            ).pack(anchor="w", side="left", padx=(0, 5))
+            
+            # Truncate long text and use CTkTextbox for proper wrapping
+            display_text = user_input[:200] + ('...' if len(user_input) > 200 else '')
+            user_textbox = ctk.CTkTextbox(
+                user_frame,
+                height=40,
+                width=550,
                 font=ctk.CTkFont(size=11),
-                anchor="w",
-                wraplength=650,
-                justify="left"
-            ).pack(anchor="w", padx=15, pady=2, fill="x")
+                fg_color="transparent",
+                wrap="word"
+            )
+            user_textbox.pack(anchor="w", side="left", fill="x", expand=True)
+            user_textbox.insert("1.0", display_text)
+            user_textbox.configure(state="disabled")  # Make read-only
         
         # AI response (if available)
         if ai_response and ai_response != 'N/A':
-            ai_text = f"🤖 AI: {ai_response[:150]}{'...' if len(ai_response) > 150 else ''}"
+            ai_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+            ai_frame.pack(fill="x", padx=15, pady=2)
+            
             ctk.CTkLabel(
-                conv_frame,
-                text=ai_text,
+                ai_frame,
+                text="AI:",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color="lightgreen"
+            ).pack(anchor="w", side="left", padx=(0, 5))
+            
+            # Truncate long text and use CTkTextbox for proper wrapping
+            display_text = ai_response[:200] + ('...' if len(ai_response) > 200 else '')
+            ai_textbox = ctk.CTkTextbox(
+                ai_frame,
+                height=40,
+                width=550,
                 font=ctk.CTkFont(size=11),
-                anchor="w",
-                wraplength=650,
-                justify="left",
-                text_color="lightblue"
-            ).pack(anchor="w", padx=15, pady=2, fill="x")
+                fg_color="transparent",
+                wrap="word"
+            )
+            ai_textbox.pack(anchor="w", side="left", fill="x", expand=True)
+            ai_textbox.insert("1.0", display_text)
+            ai_textbox.configure(state="disabled")  # Make read-only
     
     def _calculate_confidence(self, result: dict) -> float:
         """Calculate average confidence from Whisper result"""

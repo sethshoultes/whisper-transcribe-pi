@@ -46,14 +46,16 @@
     "intent": "question",
     "average_word_count": 5,
     "examples": [
-      "What's the weather like today?"
+      "What's the weather like today?",
+      "Just interesting, do you see?"
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.92
+      0.92,
+      0.1868914604187012
     ],
     "first_seen": "2025-08-16T09:33:03.070457",
-    "last_seen": "2025-08-16T09:33:03.070457"
+    "last_seen": "2025-08-16T11:48:46.418001"
   },
   "command_8_words": {
     "intent": "command",
@@ -96,44 +98,52 @@
     "intent": "transcription_request",
     "average_word_count": 10,
     "examples": [
-      "This is the memory working. Let's do a test one."
+      "This is the memory working. Let's do a test one.",
+      "testing testing testing 1 2 3 this is a test"
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.5210007727146149
+      0.5210007727146149,
+      0.2438037578876202
     ],
     "first_seen": "2025-08-16T10:51:01.534434",
-    "last_seen": "2025-08-16T10:51:01.534434"
+    "last_seen": "2025-08-16T11:48:35.948908"
   },
   "transcription_request_4_words": {
     "intent": "transcription_request",
     "average_word_count": 4,
     "examples": [
       "Remember he tests too.",
-      "Testing, have a testing."
+      "Testing, have a testing.",
+      "Hello, hello test esteem",
+      "testing testing hello lo"
     ],
-    "frequency": 2,
+    "frequency": 4,
     "confidence_scores": [
       0.2527211308479309,
-      0.3408569229973687
+      0.3408569229973687,
+      0.2957340876261393,
+      0.20306015014648438
     ],
     "first_seen": "2025-08-16T10:51:38.579484",
-    "last_seen": "2025-08-16T11:02:33.037059"
+    "last_seen": "2025-08-16T12:12:36.598638"
   },
   "general_3_words": {
     "intent": "general",
     "average_word_count": 3,
     "examples": [
       "Test transcription only",
-      "Jay correlate Okay..."
+      "Jay correlate Okay...",
+      "Testing testing 123"
     ],
-    "frequency": 2,
+    "frequency": 3,
     "confidence_scores": [
       0.95,
-      0.0
+      0.0,
+      0.2685842514038086
     ],
     "first_seen": "2025-08-16T10:58:45.236331",
-    "last_seen": "2025-08-16T11:00:43.048358"
+    "last_seen": "2025-08-16T12:16:39.484519"
   },
   "general_11_words": {
     "intent": "general",
@@ -165,14 +175,16 @@
     "intent": "transcription_request",
     "average_word_count": 3,
     "examples": [
-      "Jay correlate Okay..."
+      "Jay correlate Okay...",
+      "Testing testing 123"
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.0
+      0.0,
+      0.2685842514038086
     ],
     "first_seen": "2025-08-16T11:00:43.784316",
-    "last_seen": "2025-08-16T11:00:43.784316"
+    "last_seen": "2025-08-16T12:16:40.164435"
   },
   "question_9_words": {
     "intent": "question",
@@ -191,27 +203,33 @@
     "intent": "transcription_request",
     "average_word_count": 9,
     "examples": [
-      "Is there anyone there? Can you talk to me?"
+      "Is there anyone there? Can you talk to me?",
+      "Hello testing 1, 2, 3 testing 1, 2, 3"
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.5391049725668771
+      0.5391049725668771,
+      0.5694580078125
     ],
     "first_seen": "2025-08-16T11:00:56.158456",
-    "last_seen": "2025-08-16T11:00:56.158456"
+    "last_seen": "2025-08-16T13:05:03.458043"
   },
   "general_4_words": {
     "intent": "general",
     "average_word_count": 4,
     "examples": [
-      "Testing, have a testing."
+      "Testing, have a testing.",
+      "Hello, hello test esteem",
+      "testing testing hello lo"
     ],
-    "frequency": 1,
+    "frequency": 3,
     "confidence_scores": [
-      0.3408569229973687
+      0.3408569229973687,
+      0.2957340876261393,
+      0.20306015014648438
     ],
     "first_seen": "2025-08-16T11:02:30.194202",
-    "last_seen": "2025-08-16T11:02:30.194202"
+    "last_seen": "2025-08-16T12:12:36.112775"
   },
   "general_6_words": {
     "intent": "general",
@@ -264,5 +282,96 @@
     ],
     "first_seen": "2025-08-16T11:38:16.320390",
     "last_seen": "2025-08-16T11:38:16.320390"
+  },
+  "general_10_words": {
+    "intent": "general",
+    "average_word_count": 10,
+    "examples": [
+      "testing testing testing 1 2 3 this is a test"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.2438037578876202
+    ],
+    "first_seen": "2025-08-16T11:48:35.478643",
+    "last_seen": "2025-08-16T11:48:35.478643"
+  },
+  "transcription_request_5_words": {
+    "intent": "transcription_request",
+    "average_word_count": 5,
+    "examples": [
+      "Just interesting, do you see?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.1868914604187012
+    ],
+    "first_seen": "2025-08-16T11:48:46.874182",
+    "last_seen": "2025-08-16T11:48:46.874182"
+  },
+  "question_38_words": {
+    "intent": "question",
+    "average_word_count": 19,
+    "examples": [
+      "What happened to the memory page? No changes you made made look like shit. Everything runs off the p"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5814417430332729
+    ],
+    "first_seen": "2025-08-16T12:38:13.106160",
+    "last_seen": "2025-08-16T12:38:13.106160"
+  },
+  "transcription_request_38_words": {
+    "intent": "transcription_request",
+    "average_word_count": 19,
+    "examples": [
+      "What happened to the memory page? No changes you made made look like shit. Everything runs off the p"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5814417430332729
+    ],
+    "first_seen": "2025-08-16T12:38:17.310942",
+    "last_seen": "2025-08-16T12:38:17.310942"
+  },
+  "general_9_words": {
+    "intent": "general",
+    "average_word_count": 9,
+    "examples": [
+      "Hello testing 1, 2, 3 testing 1, 2, 3"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5694580078125
+    ],
+    "first_seen": "2025-08-16T13:04:59.696683",
+    "last_seen": "2025-08-16T13:04:59.696683"
+  },
+  "question_32_words": {
+    "intent": "question",
+    "average_word_count": 19,
+    "examples": [
+      "The memory is taking a long time, especially when there's a lot of messages in there. There's no way"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.7536022496777912
+    ],
+    "first_seen": "2025-08-16T13:05:36.286889",
+    "last_seen": "2025-08-16T13:05:36.286889"
+  },
+  "transcription_request_32_words": {
+    "intent": "transcription_request",
+    "average_word_count": 19,
+    "examples": [
+      "The memory is taking a long time, especially when there's a lot of messages in there. There's no way"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.7536022496777912
+    ],
+    "first_seen": "2025-08-16T13:05:42.344372",
+    "last_seen": "2025-08-16T13:05:42.344372"
   }
 }
