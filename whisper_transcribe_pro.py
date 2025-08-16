@@ -256,18 +256,25 @@ class LocalAI:
     def start_server(self, model_name=None):
         """Start the local LLM server"""
         if self.server_process and self.server_process.poll() is None:
-            return True  # Already running
+            # Server already running, need to restart with new model
+            self.stop_server()
+            import time
+            time.sleep(1)
             
         try:
             env_dir = self.llm_dir / "env"
             if not env_dir.exists():
                 return False
                 
-            # Use simple_api.py for REST API compatibility
+            # Use llm_api_server.py with model parameter
             cmd = [
                 str(env_dir / "bin" / "python"),
-                str(self.llm_dir / "simple_api.py")
+                str(self.llm_dir / "llm_api_server.py")
             ]
+            
+            # Add model parameter if specified
+            if model_name:
+                cmd.extend(["--model", model_name])
             
             # Start server in background
             self.server_process = subprocess.Popen(
@@ -279,7 +286,7 @@ class LocalAI:
             
             # Give it a moment to start
             import time
-            time.sleep(2)
+            time.sleep(3)  # Give more time for model loading
             
             return self.server_process.poll() is None
             
@@ -568,9 +575,8 @@ class WhisperTranscribePro(ctk.CTk):
         )
         self.text_display.grid(row=1, column=0, sticky="nsew")
         
-        # AI Response Panel
+        # AI Response Panel (initially hidden if AI not enabled)
         self.ai_frame = ctk.CTkFrame(self.content_frame)
-        self.ai_frame.grid(row=0, column=1, padx=(5, 0), pady=0, sticky="nsew")
         self.ai_frame.grid_columnconfigure(0, weight=1)
         self.ai_frame.grid_rowconfigure(1, weight=1)
         
@@ -586,6 +592,9 @@ class WhisperTranscribePro(ctk.CTk):
             wrap="word"
         )
         self.ai_display.grid(row=1, column=0, sticky="nsew")
+        
+        # Show/hide AI panel based on setting
+        self.update_ai_panel_visibility()
         
         # Action Buttons Frame
         self.button_frame = ctk.CTkFrame(self.main_frame)
@@ -1031,10 +1040,31 @@ class WhisperTranscribePro(ctk.CTk):
             'color': color
         })
     
-    def show_notification(self, message):
+    def update_ai_panel_visibility(self):
+        """Show or hide AI panel based on settings"""
+        if self.local_ai.is_enabled():
+            # Show AI panel with proper grid weights
+            self.ai_frame.grid(row=0, column=1, padx=(5, 0), pady=0, sticky="nsew")
+            self.content_frame.grid_columnconfigure(0, weight=2)  # Transcription panel
+            self.content_frame.grid_columnconfigure(1, weight=1)  # AI panel
+        else:
+            # Hide AI panel and expand transcription panel
+            self.ai_frame.grid_forget()
+            self.content_frame.grid_columnconfigure(0, weight=1)  # Full width for transcription
+            self.content_frame.grid_columnconfigure(1, weight=0)  # No AI panel
+    
+    def show_notification(self, message, notification_type="info"):
         """Show temporary notification"""
-        self.update_status(message, "yellow")
-        self.after(3000, lambda: self.update_status("* Ready", "green"))
+        color_map = {
+            "info": "blue",
+            "success": "green",
+            "warning": "orange",
+            "error": "red"
+        }
+        color = color_map.get(notification_type, "yellow")
+        self.update_status(message, color)
+        if notification_type != "error":
+            self.after(3000, lambda: self.update_status("* Ready", "green"))
     
     def process_ui_queue(self):
         """Process UI updates from queue"""
@@ -1569,75 +1599,21 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(pady=10)
         
-        # AI Enable/Disable
-        ai_enable_frame = ctk.CTkFrame(ai_frame)
-        ai_enable_frame.pack(fill="x", pady=10)
-        
-        ctk.CTkLabel(
-            ai_enable_frame,
-            text="Local AI Integration:",
-            font=ctk.CTkFont(size=12, weight="bold")
-        ).pack(anchor="w", padx=10, pady=5)
-        
-        self.ai_enabled_var = ctk.BooleanVar(value=self.settings.settings.get("ai_enabled", False))
-        self.ai_enabled_checkbox = ctk.CTkCheckBox(
-            ai_enable_frame,
-            text="Enable Local AI Processing",
-            variable=self.ai_enabled_var,
-            command=self.on_ai_settings_change
-        )
-        self.ai_enabled_checkbox.pack(anchor="w", padx=20, pady=5)
-        
-        # Auto-send setting
-        self.ai_auto_send_var = ctk.BooleanVar(value=self.settings.settings.get("ai_auto_send", False))
-        self.ai_auto_send_checkbox = ctk.CTkCheckBox(
-            ai_enable_frame,
-            text="Automatically send transcriptions to AI",
-            variable=self.ai_auto_send_var,
-            command=self.on_ai_settings_change
-        )
-        self.ai_auto_send_checkbox.pack(anchor="w", padx=20, pady=5)
-        
-        # Model selection
-        model_frame = ctk.CTkFrame(ai_frame)
-        model_frame.pack(fill="x", pady=10)
-        
-        ctk.CTkLabel(
-            model_frame,
-            text="AI Model Selection:",
-            font=ctk.CTkFont(size=12, weight="bold")
-        ).pack(anchor="w", padx=10, pady=5)
-        
-        # Get available models from the LLM server
-        try:
-            available_models = self.get_available_ai_models()
-        except:
-            available_models = ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf"]
-        
-        self.ai_model_combo = ctk.CTkComboBox(
-            model_frame,
-            values=available_models,
-            width=400,
-            height=35
-        )
-        self.ai_model_combo.pack(padx=10, pady=5)
-        
-        # Set current model
-        current_model = self.settings.settings.get("ai_model", available_models[0] if available_models else "")
-        if current_model in available_models:
-            self.ai_model_combo.set(current_model)
-        else:
-            self.ai_model_combo.set(available_models[0] if available_models else "")
-        
-        # Server control buttons
+        # Server control comes FIRST - you need to start server before anything else
         server_frame = ctk.CTkFrame(ai_frame)
         server_frame.pack(fill="x", pady=10)
         
         ctk.CTkLabel(
             server_frame,
-            text="Server Control:",
+            text="1. Server Control:",
             font=ctk.CTkFont(size=12, weight="bold")
         ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            server_frame,
+            text="Start the AI server first to enable AI features",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
         
         server_buttons_frame = ctk.CTkFrame(server_frame)
         server_buttons_frame.pack(padx=10, pady=5)
@@ -1664,6 +1640,78 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=11)
         )
         self.server_status_label.pack(padx=10, pady=5)
+        
+        # Model selection comes SECOND - select model before starting
+        model_frame = ctk.CTkFrame(ai_frame)
+        model_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            model_frame,
+            text="2. AI Model Selection:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            model_frame,
+            text="Select which AI model to use (restart server to apply)",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        # Get available models from the LLM server
+        try:
+            available_models = self.get_available_ai_models()
+        except:
+            available_models = ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf", "mistral-7b-instruct-v0.2.Q4_K_M.gguf"]
+        
+        self.ai_model_combo = ctk.CTkComboBox(
+            model_frame,
+            values=available_models,
+            width=400,
+            height=35
+        )
+        self.ai_model_combo.pack(padx=10, pady=5)
+        
+        # Set current model
+        current_model = self.settings.settings.get("ai_model", available_models[0] if available_models else "")
+        if current_model in available_models:
+            self.ai_model_combo.set(current_model)
+        else:
+            self.ai_model_combo.set(available_models[0] if available_models else "")
+        
+        # AI Enable/Disable comes THIRD - only enable after server is running
+        ai_enable_frame = ctk.CTkFrame(ai_frame)
+        ai_enable_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            ai_enable_frame,
+            text="3. Enable AI Features:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            ai_enable_frame,
+            text="Enable these features after starting the server",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        self.ai_enabled_var = ctk.BooleanVar(value=self.settings.settings.get("ai_enabled", False))
+        self.ai_enabled_checkbox = ctk.CTkCheckBox(
+            ai_enable_frame,
+            text="Enable Local AI Processing (shows AI panel)",
+            variable=self.ai_enabled_var,
+            command=self.on_ai_settings_change
+        )
+        self.ai_enabled_checkbox.pack(anchor="w", padx=20, pady=5)
+        
+        # Auto-send setting
+        self.ai_auto_send_var = ctk.BooleanVar(value=self.settings.settings.get("ai_auto_send", False))
+        self.ai_auto_send_checkbox = ctk.CTkCheckBox(
+            ai_enable_frame,
+            text="Automatically send transcriptions to AI",
+            variable=self.ai_auto_send_var,
+            command=self.on_ai_settings_change
+        )
+        self.ai_auto_send_checkbox.pack(anchor="w", padx=20, pady=5)
         
         # Update server status
         self.update_ai_server_status()
@@ -2112,6 +2160,8 @@ class SettingsWindow(ctk.CTkToplevel):
             self.parent.local_ai.settings.settings["ai_enabled"] = self.ai_enabled_var.get()
             self.parent.local_ai.settings.settings["ai_auto_send"] = self.ai_auto_send_var.get()
             self.parent.local_ai.settings.save_settings()
+            # Update AI panel visibility
+            self.parent.update_ai_panel_visibility()
     
     def start_ai_server(self):
         """Start the AI server"""
