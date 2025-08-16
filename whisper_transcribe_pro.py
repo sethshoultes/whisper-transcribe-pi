@@ -258,7 +258,6 @@ class LocalAI:
         """Start the local LLM server"""
         # Check if any server is running (ours or external)
         if self.is_server_running():
-            print(f"DEBUG: Server already running, stopping it first")
             # Server already running, need to restart with new model
             self.stop_server()
             import time
@@ -278,9 +277,6 @@ class LocalAI:
             # Add model parameter if specified
             if model_name:
                 cmd.extend(["--model", model_name])
-                print(f"DEBUG: Starting server with command: {' '.join(cmd)}")
-            else:
-                print(f"DEBUG: No model specified, using default")
             
             # Start server in background
             self.server_process = subprocess.Popen(
@@ -296,10 +292,8 @@ class LocalAI:
             
             if self.server_process.poll() is None:
                 self.current_model = model_name if model_name else "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
-                print(f"DEBUG: Server started successfully, current_model set to: {self.current_model}")
                 return True
             else:
-                print(f"DEBUG: Server failed to start, process exited")
                 return False
             
         except Exception as e:
@@ -1684,19 +1678,56 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=16, weight="bold")
         ).pack(pady=10)
         
-        # Server control comes FIRST - you need to start server before anything else
+        # Model selection comes FIRST - select model before starting server
+        model_frame = ctk.CTkFrame(ai_frame)
+        model_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            model_frame,
+            text="1. AI Model Selection:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            model_frame,
+            text="Select which AI model to use",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        # Get available models from the LLM server
+        try:
+            available_models = self.get_available_ai_models()
+        except:
+            available_models = ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf", "mistral-7b-instruct-v0.2.Q4_K_M.gguf"]
+        
+        self.ai_model_combo = ctk.CTkComboBox(
+            model_frame,
+            values=available_models,
+            width=400,
+            height=35
+        )
+        self.ai_model_combo.pack(padx=10, pady=5)
+        
+        # Set current model
+        current_model = self.settings.settings.get("ai_model", available_models[0] if available_models else "")
+        if current_model in available_models:
+            self.ai_model_combo.set(current_model)
+        else:
+            self.ai_model_combo.set(available_models[0] if available_models else "")
+        
+        # Server control comes SECOND - start server with selected model
         server_frame = ctk.CTkFrame(ai_frame)
         server_frame.pack(fill="x", pady=10)
         
         ctk.CTkLabel(
             server_frame,
-            text="1. Server Control:",
+            text="2. Server Control:",
             font=ctk.CTkFont(size=12, weight="bold")
         ).pack(anchor="w", padx=10, pady=5)
         
         ctk.CTkLabel(
             server_frame,
-            text="Start the AI server first to enable AI features",
+            text="Start the AI server with the selected model",
             font=ctk.CTkFont(size=10)
         ).pack(anchor="w", padx=20, pady=2)
         
@@ -1725,43 +1756,6 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=11)
         )
         self.server_status_label.pack(padx=10, pady=5)
-        
-        # Model selection comes SECOND - select model before starting
-        model_frame = ctk.CTkFrame(ai_frame)
-        model_frame.pack(fill="x", pady=10)
-        
-        ctk.CTkLabel(
-            model_frame,
-            text="2. AI Model Selection:",
-            font=ctk.CTkFont(size=12, weight="bold")
-        ).pack(anchor="w", padx=10, pady=5)
-        
-        ctk.CTkLabel(
-            model_frame,
-            text="Select which AI model to use (restart server to apply)",
-            font=ctk.CTkFont(size=10)
-        ).pack(anchor="w", padx=20, pady=2)
-        
-        # Get available models from the LLM server
-        try:
-            available_models = self.get_available_ai_models()
-        except:
-            available_models = ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf", "mistral-7b-instruct-v0.2.Q4_K_M.gguf"]
-        
-        self.ai_model_combo = ctk.CTkComboBox(
-            model_frame,
-            values=available_models,
-            width=400,
-            height=35
-        )
-        self.ai_model_combo.pack(padx=10, pady=5)
-        
-        # Set current model
-        current_model = self.settings.settings.get("ai_model", available_models[0] if available_models else "")
-        if current_model in available_models:
-            self.ai_model_combo.set(current_model)
-        else:
-            self.ai_model_combo.set(available_models[0] if available_models else "")
         
         # AI Enable/Disable comes THIRD - only enable after server is running
         ai_enable_frame = ctk.CTkFrame(ai_frame)
@@ -2252,7 +2246,6 @@ class SettingsWindow(ctk.CTkToplevel):
         """Start the AI server"""
         try:
             model_name = self.ai_model_combo.get() if hasattr(self, 'ai_model_combo') else None
-            print(f"DEBUG: Starting server with model: {model_name}")  # Debug
             success = self.parent.local_ai.start_server(model_name)
             if success:
                 self.parent.show_notification(f"AI server started with {model_name}")
