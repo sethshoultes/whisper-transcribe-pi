@@ -1653,10 +1653,15 @@ class WhisperTranscribePro(ctk.CTk):
             # Get conversations from context memory
             if hasattr(self.voice_memory, 'context_memory'):
                 try:
-                    context_data = self.voice_memory.context_memory.get_memory_export()
-                    export_data["context_memory"] = context_data
+                    # Use the conversation_history directly if available
+                    if hasattr(self.voice_memory.context_memory, 'conversation_history'):
+                        export_data["context_memory"] = {
+                            "conversations": self.voice_memory.context_memory.conversation_history,
+                            "preferences": getattr(self.voice_memory.context_memory, 'user_preferences', {}),
+                            "patterns": getattr(self.voice_memory.context_memory, 'voice_command_patterns', {})
+                        }
                 except Exception as ctx_error:
-                    logging.error(f"Failed to export context: {ctx_error}")
+                    logging.debug(f"Context memory export not critical: {ctx_error}")
             
             # Add analytics if available
             try:
@@ -1669,8 +1674,26 @@ class WhisperTranscribePro(ctk.CTk):
             with open(filename, 'w') as f:
                 json.dump(export_data, f, indent=2, default=str)
             
-            self.show_notification(f"Memory exported to {os.path.basename(filename)}")
-            logging.info(f"Exported memory to {filename}")
+            # Get file size for feedback
+            file_size = os.path.getsize(filename) / 1024  # Size in KB
+            conv_count = len(export_data.get("conversations", []))
+            
+            # Show success dialog with details
+            success_msg = (
+                f"Memory Export Successful!\n\n"
+                f"File: {os.path.basename(filename)}\n"
+                f"Size: {file_size:.1f} KB\n"
+                f"Conversations: {conv_count}\n"
+                f"Location: ~/Documents/WhisperTranscriptions/"
+            )
+            
+            # Create a simple info dialog
+            import tkinter.messagebox as messagebox
+            messagebox.showinfo("Export Complete", success_msg)
+            
+            # Also show notification
+            self.show_notification(f"Exported {conv_count} conversations ({file_size:.1f}KB)")
+            logging.info(f"Exported memory to {filename} ({file_size:.1f}KB, {conv_count} conversations)")
             
         except Exception as e:
             logging.error(f"Export failed: {e}")

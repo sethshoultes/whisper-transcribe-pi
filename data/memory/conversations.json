@@ -1,73 +1,5 @@
 [
   {
-    "timestamp": "2025-08-16T12:16:39.452973",
-    "user": "Testing testing 123",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpz7tet7mr.wav",
-      "confidence_score": 0.2685842514038086,
-      "audio_duration": 2.0316875,
-      "processing_time": 1755368199.4529495,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.0,
-          "text": " Testing testing 123",
-          "tokens": [
-            50364,
-            45517,
-            4997,
-            34466,
-            50464
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7314157485961914,
-          "compression_ratio": 0.9047619047619048,
-          "no_speech_prob": 0.3418678343296051
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T12:16:40.128608",
-    "user": "Testing testing 123",
-    "assistant": "Testing testing 123",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpz7tet7mr.wav",
-      "confidence_score": 0.2685842514038086,
-      "audio_duration": 2.0316875,
-      "processing_time": 1755368199.4529495,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.0,
-          "text": " Testing testing 123",
-          "tokens": [
-            50364,
-            45517,
-            4997,
-            34466,
-            50464
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7314157485961914,
-          "compression_ratio": 0.9047619047619048,
-          "no_speech_prob": 0.3418678343296051
-        }
-      ]
-    }
-  },
-  {
     "timestamp": "2025-08-16T12:38:13.073214",
     "user": "What happened to the memory page? No changes you made made look like shit. Everything runs off the page. I still can't scroll very well without using the scroll bar. I can't use the mouse wheel to scroll.",
     "assistant": "",
@@ -685,6 +617,90 @@
           "avg_logprob": -0.41577133379484477,
           "compression_ratio": 1.0909090909090908,
           "no_speech_prob": 0.02432720921933651
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:11:58.481534",
+    "user": "The export data doesn't seem to be doing anything.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpz7t1lbfo.wav",
+      "confidence_score": 0.6333131790161133,
+      "audio_duration": 3.8080625,
+      "processing_time": 1755375118.4815116,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 3.5,
+          "text": " The export data doesn't seem to be doing anything.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            1177,
+            380,
+            1643,
+            281,
+            312,
+            884,
+            1340,
+            13,
+            50539
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.3666868209838867,
+          "compression_ratio": 0.9090909090909091,
+          "no_speech_prob": 0.029600709676742554
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:11:59.952625",
+    "user": "The export data doesn't seem to be doing anything.",
+    "assistant": "The export data is not doing anything because you haven't added any data to the spreadsheet.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpz7t1lbfo.wav",
+      "confidence_score": 0.6333131790161133,
+      "audio_duration": 3.8080625,
+      "processing_time": 1755375118.4815116,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 3.5,
+          "text": " The export data doesn't seem to be doing anything.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            1177,
+            380,
+            1643,
+            281,
+            312,
+            884,
+            1340,
+            13,
+            50539
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.3666868209838867,
+          "compression_ratio": 0.9090909090909091,
+          "no_speech_prob": 0.029600709676742554
         }
       ]
     }

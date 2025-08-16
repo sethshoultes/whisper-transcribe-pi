@@ -204,15 +204,17 @@
     "average_word_count": 9,
     "examples": [
       "Is there anyone there? Can you talk to me?",
-      "Hello testing 1, 2, 3 testing 1, 2, 3"
+      "Hello testing 1, 2, 3 testing 1, 2, 3",
+      "The export data doesn't seem to be doing anything."
     ],
-    "frequency": 2,
+    "frequency": 3,
     "confidence_scores": [
       0.5391049725668771,
-      0.5694580078125
+      0.5694580078125,
+      0.6333131790161133
     ],
     "first_seen": "2025-08-16T11:00:56.158456",
-    "last_seen": "2025-08-16T13:05:03.458043"
+    "last_seen": "2025-08-16T14:11:59.982158"
   },
   "general_4_words": {
     "intent": "general",
@@ -339,14 +341,16 @@
     "intent": "general",
     "average_word_count": 9,
     "examples": [
-      "Hello testing 1, 2, 3 testing 1, 2, 3"
+      "Hello testing 1, 2, 3 testing 1, 2, 3",
+      "The export data doesn't seem to be doing anything."
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.5694580078125
+      0.5694580078125,
+      0.6333131790161133
     ],
     "first_seen": "2025-08-16T13:04:59.696683",
-    "last_seen": "2025-08-16T13:04:59.696683"
+    "last_seen": "2025-08-16T14:11:58.510698"
   },
   "question_32_words": {
     "intent": "question",
