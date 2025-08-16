@@ -1,190 +1,5 @@
 [
   {
-    "timestamp": "2025-08-16T09:16:27.440752",
-    "user": "What do you see in the room?",
-    "assistant": "I can see a person sitting at a desk with a laptop",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "confidence_score": 0.87,
-      "processing_time_seconds": 2.3,
-      "audio_duration_seconds": 4.5
-    }
-  },
-  {
-    "timestamp": "2025-08-16T09:17:16.402519",
-    "user": "Hey assistant, what's the weather like today?",
-    "assistant": "Today's weather is sunny with a high of 75\u00b0F",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "confidence_score": 0.89,
-      "processing_time_seconds": 1.8,
-      "audio_duration_seconds": 3.2
-    }
-  },
-  {
-    "timestamp": "2025-08-16T09:31:56.955539",
-    "user": "What time is it?",
-    "assistant": "The current time is 3:45 PM.",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/test_audio.wav",
-      "confidence_score": 0.87,
-      "audio_duration": 2.5,
-      "processing_time": 1.2,
-      "wake_word_detected": true,
-      "wake_word_confidence": 0.91
-    }
-  },
-  {
-    "timestamp": "2025-08-16T09:33:03.018223",
-    "user": "What's the weather like today?",
-    "assistant": "The current weather is 72\u00b0F and sunny with light winds.",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/audio_1755358383.wav",
-      "confidence_score": 0.92,
-      "audio_duration": 2.4,
-      "processing_time": 1.5,
-      "wake_word_detected": true,
-      "wake_word_confidence": 0.87,
-      "language": "en-US",
-      "segments": [
-        {
-          "start": 0.0,
-          "end": 2.4,
-          "text": "What's the weather like today?"
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T09:33:03.084084",
-    "user": "What time is it?",
-    "assistant": "The current time is 3:45 PM.",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/audio_1755358383.wav",
-      "confidence_score": 0.89,
-      "audio_duration": 1.28,
-      "processing_time": 1.3599999999999999,
-      "wake_word_detected": true,
-      "wake_word_confidence": 0.87,
-      "language": "en-US",
-      "segments": [
-        {
-          "start": 0.0,
-          "end": 1.28,
-          "text": "What time is it?"
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T09:33:03.166811",
-    "user": "Turn on the lights in the living room",
-    "assistant": "I'll turn on the living room lights for you.",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/audio_1755358383.wav",
-      "confidence_score": 0.85,
-      "audio_duration": 2.96,
-      "processing_time": 1.5699999999999998,
-      "wake_word_detected": true,
-      "wake_word_confidence": 0.87,
-      "language": "en-US",
-      "segments": [
-        {
-          "start": 0.0,
-          "end": 2.96,
-          "text": "Turn on the lights in the living room"
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T09:33:03.270591",
-    "user": "Tell me about artificial intelligence",
-    "assistant": "Artificial intelligence is a branch of computer science that aims to create intelligent machines...",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/audio_1755358383.wav",
-      "confidence_score": 0.94,
-      "audio_duration": 2.96,
-      "processing_time": 1.5699999999999998,
-      "wake_word_detected": false,
-      "wake_word_confidence": null,
-      "language": "en-US",
-      "segments": [
-        {
-          "start": 0.0,
-          "end": 2.96,
-          "text": "Tell me about artificial intelligence"
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T10:34:39.135687",
-    "user": "Test command",
-    "assistant": "Test response",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "confidence": 0.95
-    }
-  },
-  {
-    "timestamp": "2025-08-16T10:51:01.498195",
-    "user": "This is the memory working. Let's do a test one.",
-    "assistant": "Yes, let's do it.",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmp01cklwna.wav",
-      "confidence_score": 0.5210007727146149,
-      "audio_duration": 4.435,
-      "processing_time": 1755363060.6365857,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 4.24,
-          "text": " This is the memory working. Let's do a test one.",
-          "tokens": [
-            50364,
-            639,
-            307,
-            264,
-            4675,
-            1364,
-            13,
-            961,
-            311,
-            360,
-            257,
-            1500,
-            472,
-            13,
-            50576
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.47899922728538513,
-          "compression_ratio": 0.8888888888888888,
-          "no_speech_prob": 0.03015211597084999
-        }
-      ]
-    }
-  },
-  {
     "timestamp": "2025-08-16T10:51:38.536241",
     "user": "Remember he tests too.",
     "assistant": "Remember he tests too.",
@@ -229,6 +44,360 @@
     "audio_metadata": {
       "confidence_score": 0.95,
       "audio_duration": 2.0
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:00:22.102632",
+    "user": "Test one, test one, test one, test one, test two, memory.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpejslqhp0.wav",
+      "confidence_score": 0.26079921722412114,
+      "audio_duration": 4.1795625,
+      "processing_time": 1755363622.102608,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 4.0,
+          "text": " Test one, test one, test one, test one, test two, memory.",
+          "tokens": [
+            50364,
+            9279,
+            472,
+            11,
+            1500,
+            472,
+            11,
+            1500,
+            472,
+            11,
+            1500,
+            472,
+            11,
+            1500,
+            732,
+            11,
+            4675,
+            13,
+            50564
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.7392007827758789,
+          "compression_ratio": 1.7272727272727273,
+          "no_speech_prob": 0.04857898876070976
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:00:22.672805",
+    "user": "Test one, test one, test one, test one, test two, memory.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpejslqhp0.wav",
+      "confidence_score": 0.26079921722412114,
+      "audio_duration": 4.1795625,
+      "processing_time": 1755363622.102608,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 4.0,
+          "text": " Test one, test one, test one, test one, test two, memory.",
+          "tokens": [
+            50364,
+            9279,
+            472,
+            11,
+            1500,
+            472,
+            11,
+            1500,
+            472,
+            11,
+            1500,
+            472,
+            11,
+            1500,
+            732,
+            11,
+            4675,
+            13,
+            50564
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.7392007827758789,
+          "compression_ratio": 1.7272727272727273,
+          "no_speech_prob": 0.04857898876070976
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:00:42.997076",
+    "user": "Jay correlate Okay...",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpqsv3m8ba.wav",
+      "confidence_score": 0.0,
+      "audio_duration": 2.890875,
+      "processing_time": 1755363642.9970508,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.68,
+          "end": 1.18,
+          "text": " Jay correlate",
+          "tokens": [
+            50398,
+            11146,
+            48742,
+            50423
+          ],
+          "temperature": 1.0,
+          "avg_logprob": -6.794901953803168,
+          "compression_ratio": 0.7241379310344828,
+          "no_speech_prob": 0.07875537872314453
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 3.34,
+          "end": 17.18,
+          "text": " Okay...",
+          "tokens": [
+            50531,
+            1033,
+            485,
+            51223
+          ],
+          "temperature": 1.0,
+          "avg_logprob": -6.794901953803168,
+          "compression_ratio": 0.7241379310344828,
+          "no_speech_prob": 0.07875537872314453
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:00:43.740677",
+    "user": "Jay correlate Okay...",
+    "assistant": "Jay, I'm glad you asked.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpqsv3m8ba.wav",
+      "confidence_score": 0.0,
+      "audio_duration": 2.890875,
+      "processing_time": 1755363642.9970508,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.68,
+          "end": 1.18,
+          "text": " Jay correlate",
+          "tokens": [
+            50398,
+            11146,
+            48742,
+            50423
+          ],
+          "temperature": 1.0,
+          "avg_logprob": -6.794901953803168,
+          "compression_ratio": 0.7241379310344828,
+          "no_speech_prob": 0.07875537872314453
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 3.34,
+          "end": 17.18,
+          "text": " Okay...",
+          "tokens": [
+            50531,
+            1033,
+            485,
+            51223
+          ],
+          "temperature": 1.0,
+          "avg_logprob": -6.794901953803168,
+          "compression_ratio": 0.7241379310344828,
+          "no_speech_prob": 0.07875537872314453
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:00:55.293213",
+    "user": "Is there anyone there? Can you talk to me?",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpsa4hg069.wav",
+      "confidence_score": 0.5391049725668771,
+      "audio_duration": 4.2724375,
+      "processing_time": 1755363655.2931871,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 4.0,
+          "text": " Is there anyone there? Can you talk to me?",
+          "tokens": [
+            50364,
+            1119,
+            456,
+            2878,
+            456,
+            30,
+            1664,
+            291,
+            751,
+            281,
+            385,
+            30,
+            50564
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4608950274331229,
+          "compression_ratio": 0.9333333333333333,
+          "no_speech_prob": 0.04877707362174988
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:00:56.116462",
+    "user": "Is there anyone there? Can you talk to me?",
+    "assistant": "No, I'm not here.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpsa4hg069.wav",
+      "confidence_score": 0.5391049725668771,
+      "audio_duration": 4.2724375,
+      "processing_time": 1755363655.2931871,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 4.0,
+          "text": " Is there anyone there? Can you talk to me?",
+          "tokens": [
+            50364,
+            1119,
+            456,
+            2878,
+            456,
+            30,
+            1664,
+            291,
+            751,
+            281,
+            385,
+            30,
+            50564
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4608950274331229,
+          "compression_ratio": 0.9333333333333333,
+          "no_speech_prob": 0.04877707362174988
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:02:30.147827",
+    "user": "Testing, have a testing.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpg0vm2ty2.wav",
+      "confidence_score": 0.3408569229973687,
+      "audio_duration": 1.6834375,
+      "processing_time": 1755363750.147803,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 2.0,
+          "text": " Testing, have a testing.",
+          "tokens": [
+            50364,
+            45517,
+            11,
+            362,
+            257,
+            4997,
+            13,
+            50464
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6591430770026313,
+          "compression_ratio": 0.8888888888888888,
+          "no_speech_prob": 0.1399337649345398
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:02:32.987317",
+    "user": "Testing, have a testing.",
+    "assistant": "Testing is a crucial part of software development. It helps to identify and fix bugs, ensure that the software meets the requirements, and ensure that the software is reliable and performs as expected.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpg0vm2ty2.wav",
+      "confidence_score": 0.3408569229973687,
+      "audio_duration": 1.6834375,
+      "processing_time": 1755363750.147803,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 2.0,
+          "text": " Testing, have a testing.",
+          "tokens": [
+            50364,
+            45517,
+            11,
+            362,
+            257,
+            4997,
+            13,
+            50464
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6591430770026313,
+          "compression_ratio": 0.8888888888888888,
+          "no_speech_prob": 0.1399337649345398
+        }
+      ]
     }
   }
 ]

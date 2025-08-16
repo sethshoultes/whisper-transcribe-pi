@@ -1637,22 +1637,28 @@ class WhisperTranscribePro(ctk.CTk):
             
             # Try to get from conversation memory (SQLite)
             try:
-                recent = self.voice_memory.conversation_memory.get_recent_conversations(limit=20)
+                recent = self.voice_memory.conversation_memory.get_recent(limit=20)
                 for conv in recent:
+                    confidence = conv.get('transcription_confidence', 0.0)
+                    if confidence is None:
+                        confidence = 0.0
                     conversations.append({
                         'timestamp': conv.get('timestamp'),
                         'user_input': conv.get('user_input', ''),
                         'assistant_response': conv.get('assistant_response', ''),
-                        'confidence': conv.get('transcription_confidence', 0.0),
+                        'confidence': confidence,
                         'source': 'database'
                     })
-            except:
-                pass
+            except Exception as e:
+                logging.error(f"Failed to load from conversation memory: {e}")
+                import traceback
+                traceback.print_exc()
             
             # Also check context memory (JSON)
             try:
                 context_data = self.voice_memory.context_memory.get_recent_context(limit=20, voice_only=True)
                 for item in context_data:
+                    # Handle both dict and string items from context
                     if isinstance(item, dict) and 'user' in item:
                         conversations.append({
                             'timestamp': item.get('timestamp', ''),
@@ -1661,8 +1667,9 @@ class WhisperTranscribePro(ctk.CTk):
                             'confidence': item.get('audio_metadata', {}).get('confidence_score', 0.0),
                             'source': 'context'
                         })
-            except:
-                pass
+            except Exception as e:
+                logging.error(f"Failed to load from context memory: {e}")
+                # Don't print traceback for context memory as it's not critical
             
             # Also check transcription history if no memory conversations
             if not conversations and hasattr(self, 'transcription_history'):
@@ -1685,8 +1692,29 @@ class WhisperTranscribePro(ctk.CTk):
                 return
             
             # Display each conversation
+            logging.info(f"Displaying {len(conversations[:20])} conversations in memory dialog")
             for i, conv in enumerate(conversations[:20]):  # Limit to 20 most recent
-                self._create_conversation_widget(parent_frame, conv, i)
+                try:
+                    self._create_conversation_widget(parent_frame, conv, i)
+                    logging.debug(f"Created widget for conversation {i+1}")
+                except Exception as widget_error:
+                    logging.error(f"Failed to create widget for conversation {i+1}: {widget_error}")
+                    # Create a simple error widget
+                    ctk.CTkLabel(
+                        parent_frame,
+                        text=f"❌ Error displaying conversation {i+1}",
+                        text_color="red"
+                    ).pack(anchor="w", padx=10, pady=2)
+            
+            # Add a summary message
+            if conversations:
+                summary_text = f"Found {len(conversations)} conversations"
+                ctk.CTkLabel(
+                    parent_frame,
+                    text=f"📊 {summary_text}",
+                    text_color="lightblue",
+                    font=ctk.CTkFont(size=10)
+                ).pack(anchor="w", padx=10, pady=5)
                 
         except Exception as e:
             logging.error(f"Failed to load conversation history: {e}")

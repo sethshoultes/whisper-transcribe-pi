@@ -109,26 +109,108 @@
     "intent": "transcription_request",
     "average_word_count": 4,
     "examples": [
-      "Remember he tests too."
+      "Remember he tests too.",
+      "Testing, have a testing."
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.2527211308479309
+      0.2527211308479309,
+      0.3408569229973687
     ],
     "first_seen": "2025-08-16T10:51:38.579484",
-    "last_seen": "2025-08-16T10:51:38.579484"
+    "last_seen": "2025-08-16T11:02:33.037059"
   },
   "general_3_words": {
     "intent": "general",
     "average_word_count": 3,
     "examples": [
-      "Test transcription only"
+      "Test transcription only",
+      "Jay correlate Okay..."
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.95,
+      0.0
+    ],
+    "first_seen": "2025-08-16T10:58:45.236331",
+    "last_seen": "2025-08-16T11:00:43.048358"
+  },
+  "general_11_words": {
+    "intent": "general",
+    "average_word_count": 11,
+    "examples": [
+      "Test one, test one, test one, test one, test two, memory."
     ],
     "frequency": 1,
     "confidence_scores": [
-      0.95
+      0.26079921722412114
     ],
-    "first_seen": "2025-08-16T10:58:45.236331",
-    "last_seen": "2025-08-16T10:58:45.236331"
+    "first_seen": "2025-08-16T11:00:22.148326",
+    "last_seen": "2025-08-16T11:00:22.148326"
+  },
+  "transcription_request_11_words": {
+    "intent": "transcription_request",
+    "average_word_count": 11,
+    "examples": [
+      "Test one, test one, test one, test one, test two, memory."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.26079921722412114
+    ],
+    "first_seen": "2025-08-16T11:00:22.713002",
+    "last_seen": "2025-08-16T11:00:22.713002"
+  },
+  "transcription_request_3_words": {
+    "intent": "transcription_request",
+    "average_word_count": 3,
+    "examples": [
+      "Jay correlate Okay..."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.0
+    ],
+    "first_seen": "2025-08-16T11:00:43.784316",
+    "last_seen": "2025-08-16T11:00:43.784316"
+  },
+  "question_9_words": {
+    "intent": "question",
+    "average_word_count": 9,
+    "examples": [
+      "Is there anyone there? Can you talk to me?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5391049725668771
+    ],
+    "first_seen": "2025-08-16T11:00:55.341246",
+    "last_seen": "2025-08-16T11:00:55.341246"
+  },
+  "transcription_request_9_words": {
+    "intent": "transcription_request",
+    "average_word_count": 9,
+    "examples": [
+      "Is there anyone there? Can you talk to me?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5391049725668771
+    ],
+    "first_seen": "2025-08-16T11:00:56.158456",
+    "last_seen": "2025-08-16T11:00:56.158456"
+  },
+  "general_4_words": {
+    "intent": "general",
+    "average_word_count": 4,
+    "examples": [
+      "Testing, have a testing."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.3408569229973687
+    ],
+    "first_seen": "2025-08-16T11:02:30.194202",
+    "last_seen": "2025-08-16T11:02:30.194202"
   }
 }
