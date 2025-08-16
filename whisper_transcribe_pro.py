@@ -1437,14 +1437,45 @@ class WhisperTranscribePro(ctk.CTk):
         self.update_ai_model_label()
     
     def update_ai_model_label(self):
-        """Update the AI model label with current model"""
-        current_model = self.local_ai.get_current_model()
-        if current_model:
-            self.ai_model_label.configure(text=f"AI: {current_model}", text_color="green")
-        elif self.local_ai.is_enabled():
-            self.ai_model_label.configure(text="AI: Starting...", text_color="orange")
+        """Update the AI model label with current provider and status"""
+        provider_type = self.settings.settings.get("ai_provider", "local")
+        ai_enabled = self.settings.settings.get("ai_enabled", False)
+        
+        if not ai_enabled:
+            self.ai_model_label.configure(text="AI: Disabled", text_color="gray")
+            return
+        
+        # Get current provider
+        provider = self.get_current_ai_provider()
+        
+        if provider_type == "local":
+            # Local AI status
+            current_model = self.local_ai.get_current_model()
+            if current_model:
+                self.ai_model_label.configure(text=f"AI: {current_model}", text_color="green")
+            elif self.local_ai.is_server_running():
+                self.ai_model_label.configure(text="AI: Starting...", text_color="orange")
+            else:
+                self.ai_model_label.configure(text="AI: Local (Not Running)", text_color="orange")
+        
+        elif provider_type == "claude":
+            # Claude API status
+            if provider and provider.is_available():
+                self.ai_model_label.configure(text="AI: Claude API", text_color="green")
+            else:
+                self.ai_model_label.configure(text="AI: Claude (No API Key)", text_color="red")
+        
+        elif provider_type == "openai":
+            # OpenAI API status
+            if provider and provider.is_available():
+                model = self.settings.settings.get("openai_model", "gpt-3.5-turbo")
+                model_short = model.replace("gpt-", "GPT-")
+                self.ai_model_label.configure(text=f"AI: {model_short}", text_color="green")
+            else:
+                self.ai_model_label.configure(text="AI: OpenAI (No API Key)", text_color="red")
+        
         else:
-            self.ai_model_label.configure(text="AI: Not Running", text_color="gray")
+            self.ai_model_label.configure(text="AI: Unknown", text_color="gray")
     
     def check_ai_status(self):
         """Periodically check and update AI server status"""
@@ -2096,6 +2127,8 @@ class SettingsWindow(ctk.CTkToplevel):
             width=400
         )
         self.claude_api_entry.pack(padx=10, pady=(2,10))
+        # Save API key when it changes
+        self.claude_api_key_var.trace("w", lambda *args: self.save_api_keys())
         
         # OpenAI configuration
         self.openai_frame = ctk.CTkFrame(provider_frame)
@@ -2115,6 +2148,8 @@ class SettingsWindow(ctk.CTkToplevel):
             width=400
         )
         self.openai_api_entry.pack(padx=10, pady=(2,5))
+        # Save API key when it changes
+        self.openai_api_key_var.trace("w", lambda *args: self.save_api_keys())
         
         ctk.CTkLabel(
             self.openai_frame,
@@ -2129,6 +2164,8 @@ class SettingsWindow(ctk.CTkToplevel):
             width=400
         )
         self.openai_model_combo.pack(padx=10, pady=(2,10))
+        # Save model selection when it changes
+        self.openai_model_var.trace("w", lambda *args: self.save_api_keys())
         
         # Model selection comes SECOND - select model before starting server
         self.model_frame = ctk.CTkFrame(ai_frame)
@@ -2732,9 +2769,31 @@ class SettingsWindow(ctk.CTkToplevel):
             # Update AI panel visibility
             self.parent.update_ai_panel_visibility()
     
+    def save_api_keys(self):
+        """Save API keys when they change"""
+        if hasattr(self, 'claude_api_key_var'):
+            self.settings.settings["claude_api_key"] = self.claude_api_key_var.get()
+        if hasattr(self, 'openai_api_key_var'):
+            self.settings.settings["openai_api_key"] = self.openai_api_key_var.get()
+        if hasattr(self, 'openai_model_var'):
+            self.settings.settings["openai_model"] = self.openai_model_var.get()
+        self.settings.save_settings()
+        
+        # Update main UI to reflect changes
+        if hasattr(self.parent, 'update_ai_model_label'):
+            self.parent.update_ai_model_label()
+    
     def on_provider_change(self):
         """Handle AI provider selection change"""
         provider = self.ai_provider_var.get()
+        
+        # Save the provider selection immediately
+        self.settings.settings["ai_provider"] = provider
+        self.settings.save_settings()
+        
+        # Update main UI to reflect provider change
+        if hasattr(self.parent, 'update_ai_model_label'):
+            self.parent.update_ai_model_label()
         
         # Show/hide frames based on provider selection
         if provider == "local":
