@@ -263,10 +263,10 @@ class LocalAI:
             if not env_dir.exists():
                 return False
                 
-            # Use the manual server command from CLAUDE.md
+            # Use simple_api.py for REST API compatibility
             cmd = [
                 str(env_dir / "bin" / "python"),
-                str(self.llm_dir / "app.py")
+                str(self.llm_dir / "simple_api.py")
             ]
             
             # Start server in background
@@ -298,10 +298,10 @@ class LocalAI:
         if self.server_process and self.server_process.poll() is None:
             return True
         
-        # Also check if something is running on port 7860
+        # Check if simple_api.py is running on port 7861
         try:
             import requests
-            response = requests.get("http://localhost:7860", timeout=2)
+            response = requests.get("http://localhost:7861/health", timeout=2)
             return response.status_code == 200
         except:
             return False
@@ -313,20 +313,18 @@ class LocalAI:
             
         try:
             import requests
-            # Simple API call to your LLM server
+            # Call simple_api.py endpoint
             response = requests.post(
-                "http://localhost:7860/api/v1/chat/completions",
+                "http://localhost:7861/api/generate",
                 json={
-                    "messages": [{"role": "user", "content": text}],
-                    "temperature": 0.7,
-                    "max_tokens": 200
+                    "prompt": text
                 },
                 timeout=30
             )
             
             if response.status_code == 200:
                 result = response.json()
-                ai_response = result.get("choices", [{}])[0].get("message", {}).get("content", "No response")
+                ai_response = result.get("response", "No response")
                 return {"success": True, "response": ai_response}
             else:
                 return {"success": False, "error": f"API error: {response.status_code}"}
