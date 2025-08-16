@@ -1,6 +1,6 @@
 # Whisper Transcribe Pi
 
-A professional speech-to-text application for Raspberry Pi using OpenAI's Whisper model. Available in both Standard and Pro versions with advanced features, modern UI, and AI integration.
+A professional speech-to-text application for Raspberry Pi using OpenAI's Whisper model. Available in both Standard and Pro versions with advanced features, modern UI, and comprehensive AI integration supporting Local AI, Claude API, and OpenAI API.
 
 ## Whisper Transcribe Screenshots
 <img width="598" height="524" alt="whisper-1" src="https://github.com/user-attachments/assets/e00e2f21-e5f1-45ee-8c88-d99ab1b5cc0b" />
@@ -22,6 +22,8 @@ A professional speech-to-text application for Raspberry Pi using OpenAI's Whispe
 - **Dark/Light themes** with live preview
 - **Comprehensive settings** with 4-tab interface
 - **Inline microphone testing** with waveform visualization
+- **AI Integration** - Local AI, Claude API, OpenAI API support
+- **Auto-send & Manual AI processing** modes
 - **AI-powered audio enhancement** (Hailo integration)
 - **Noise reduction & Voice Activity Detection**
 - **Export functionality** with timestamped files
@@ -40,6 +42,26 @@ A professional speech-to-text application for Raspberry Pi using OpenAI's Whispe
 - USB Microphone
 - Python 3.7+
 - Internet connection (for initial setup)
+
+### AI Integration Requirements
+
+#### For Local AI (Optional)
+- **Additional RAM**: 8GB recommended for larger models
+- **Storage Space**: 0.6-4GB per model
+- **Dependencies**: Auto-installed during setup
+- **Models**: TinyLlama (638MB), Phi-2 (1.4GB), Mistral-7B (4GB)
+
+#### For Claude API (Optional)
+- **API Key**: Free account at console.anthropic.com
+- **Dependencies**: `pip install anthropic`
+- **Internet**: Required for API calls
+- **Cost**: Pay-per-use (starting ~$0.25/1M tokens)
+
+#### For OpenAI API (Optional)
+- **API Key**: Account at platform.openai.com
+- **Dependencies**: `pip install openai`
+- **Internet**: Required for API calls
+- **Cost**: Pay-per-use (GPT-3.5: ~$0.50/1M tokens, GPT-4: ~$10/1M tokens)
 
 ### Optional: Hailo AI Accelerator
 - Hailo-8 AI processor (for enhanced audio processing)
@@ -145,6 +167,13 @@ Access comprehensive settings via the Settings button:
 - Toggle always-on-top
 - Enable compact mode
 
+#### AI Integration Tab
+- Choose AI provider (Local AI, Claude API, OpenAI API)
+- Configure API keys for cloud services
+- Download and manage local AI models
+- Enable auto-send or manual AI processing
+- Start/stop local AI server
+
 #### Advanced Tab
 - Configure hotkeys
 - Enable debug logging
@@ -156,6 +185,133 @@ Access comprehensive settings via the Settings button:
 - `R` or `Space` - Start/stop recording
 - `Escape` - Exit application
 - Customizable in Pro version settings
+
+## AI Integration Features
+
+### AI Provider Support
+The Pro version includes comprehensive AI integration with support for three different providers:
+
+#### 1. Local AI (Private & Offline)
+- **TinyLlama 1.1B** - Lightweight model optimized for Raspberry Pi
+- **Phi-2** - Microsoft's efficient 2.7B parameter model  
+- **Mistral-7B** - High-quality 7B parameter model
+- **Privacy**: All processing happens locally on your device
+- **Cost**: Free after initial download
+- **Requirements**: Additional storage space (0.6-4GB per model)
+
+#### 2. Claude API (Anthropic)
+- **Claude Haiku** - Fast and cost-effective model
+- **Privacy**: Data sent to Anthropic's servers
+- **Cost**: Pay-per-use API pricing
+- **Requirements**: Anthropic API key from console.anthropic.com
+
+#### 3. OpenAI API
+- **GPT-3.5 Turbo** - Fast and affordable
+- **GPT-4** - Most capable model
+- **GPT-4 Turbo** - Enhanced version of GPT-4
+- **GPT-4o & GPT-4o Mini** - Latest optimized models
+- **Privacy**: Data sent to OpenAI's servers
+- **Cost**: Pay-per-use API pricing
+- **Requirements**: OpenAI API key from platform.openai.com
+
+### AI Configuration
+
+#### Setting Up Local AI
+1. Open Settings → AI Integration tab
+2. Select "Local AI (Private & Offline)" as provider
+3. Choose your preferred model from the dropdown
+4. Click "Download TinyLlama" if not already available (638 MB)
+5. Click "Start AI Server" to begin local processing
+
+#### Setting Up Claude API
+1. Get your API key from https://console.anthropic.com
+2. Open Settings → AI Integration tab
+3. Select "Claude API" as provider
+4. Enter your API key in the secure field
+5. API key is saved encrypted locally
+
+#### Setting Up OpenAI API  
+1. Get your API key from https://platform.openai.com
+2. Open Settings → AI Integration tab
+3. Select "OpenAI API" as provider
+4. Enter your API key in the secure field
+5. Choose your preferred model (GPT-3.5 Turbo recommended for cost)
+6. API key is saved encrypted locally
+
+### AI Features
+
+#### Auto-Send Mode
+- **Automatic processing**: Every transcription is sent to AI immediately
+- **Seamless workflow**: No manual intervention required
+- **Real-time enhancement**: AI analysis appears alongside transcription
+- **Enable**: Check "Automatically send transcriptions to AI" in settings
+
+#### Manual Send Mode
+- **On-demand processing**: Send transcriptions to AI when needed
+- **Selective enhancement**: Choose which transcriptions to enhance
+- **Cost control**: Only pay for API calls you make
+- **Usage**: Click "Send to AI" button in the interface
+
+### Downloading Models for Local AI
+
+The application supports automatic model downloading:
+
+#### TinyLlama (Recommended for Pi)
+- **Size**: 638 MB
+- **Performance**: Optimized for Raspberry Pi hardware
+- **Download**: One-click download in AI settings
+- **Location**: `~/simple-llm-server/models/`
+
+#### Additional Models
+For Phi-2 and Mistral models, use the LLM setup scripts:
+```bash
+# Navigate to LLM scripts
+cd ~/llm-scripts/setup/
+
+# Download and prepare models
+./prepare_models.sh
+```
+
+### Example Use Cases
+
+#### 1. Meeting Notes Enhancement
+- Record meeting discussions with whisper transcription
+- Auto-send to AI for summary and action items
+- Export enhanced notes with timestamps
+
+#### 2. Interview Transcription
+- Transcribe interviews in real-time
+- Send to AI for key points extraction
+- Generate structured summaries
+
+#### 3. Voice Memo Processing
+- Record quick voice memos
+- AI enhancement for clarity and structure
+- Automatic organization and categorization
+
+#### 4. Language Learning
+- Practice pronunciation with transcription
+- AI feedback on grammar and usage
+- Multilingual support with AI translation
+
+#### 5. Accessibility Support
+- Real-time speech-to-text for accessibility
+- AI enhancement for difficult audio
+- Context-aware corrections
+
+### Privacy & Security Considerations
+
+#### Local AI
+- ✅ **Complete Privacy**: No data leaves your device
+- ✅ **Offline Capable**: Works without internet
+- ✅ **No API Costs**: Free after model download
+- ⚠️ **Storage Requirements**: Models require significant disk space
+
+#### Cloud APIs (Claude/OpenAI)
+- ⚠️ **Data Transmission**: Transcriptions sent to cloud services
+- ✅ **High Quality**: Access to state-of-the-art models
+- ⚠️ **API Costs**: Pay-per-use pricing
+- ✅ **No Storage Required**: Models hosted remotely
 
 ## Features in Detail
 
@@ -274,7 +430,7 @@ ls -la ~/.whisper_transcribe_pro.json
 ```
 whisper-transcribe-pi/
 ├── whisper_transcribe.py          # Standard version
-├── whisper_transcribe_pro.py      # Pro version with advanced features
+├── whisper_transcribe_pro.py      # Pro version with AI integration
 ├── launch_whisper.sh              # Standard launcher
 ├── launch_whisper_pro.sh          # Pro launcher
 ├── setup_pro.sh                   # Pro installation script
@@ -282,6 +438,8 @@ whisper-transcribe-pi/
 ├── requirements.txt               # Python dependencies
 ├── whisper-transcribe.desktop     # Standard desktop entry
 ├── whisper-transcribe-pro.desktop # Pro desktop entry
+├── ai_provider_usage_example.py   # AI integration example code
+├── test_ai_integration.py         # AI integration testing
 ├── icons/                         # Application icons
 │   ├── whisper-icon.png
 │   └── whisper-icon.svg

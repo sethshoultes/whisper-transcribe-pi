@@ -46,6 +46,21 @@ python3 -c "import sounddevice as sd; print(sd.query_devices())"
 arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 ```
 
+### Testing AI Providers
+```bash
+# Test OpenAI integration
+python3 -c "from whisper_transcribe_pro import test_openai_connection; test_openai_connection()"
+
+# Test Anthropic Claude integration  
+python3 -c "from whisper_transcribe_pro import test_anthropic_connection; test_anthropic_connection()"
+
+# Test Groq integration
+python3 -c "from whisper_transcribe_pro import test_groq_connection; test_groq_connection()"
+
+# Full AI integration test
+python3 -c "from whisper_transcribe_pro import WhisperTranscribePro; app = WhisperTranscribePro(); app.test_ai_integration()"
+```
+
 ## Common Tasks
 
 ### Debugging Audio Issues
@@ -63,6 +78,13 @@ arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 2. Update `PROJECT_MAP.md` with line references
 3. Document in README.md user-facing changes
 4. Test on actual Raspberry Pi hardware
+
+### AI Integration Tasks
+1. Test AI providers with `test_ai_integration()` (Line ~700)
+2. Configure provider settings in AI tab (Lines 1150-1200)
+3. Monitor AI enhancement status in main UI
+4. Debug provider responses in console output
+5. Validate API keys and connection status
 
 ## Critical Rules
 
@@ -86,6 +108,53 @@ arecord -D plughw:2,0 -f S16_LE -r 44100 -d 3 test.wav && aplay test.wav
 | Window opacity | Removed | Wayland incompatible |
 | Settings not applying | Fixed | Immediate application implemented |
 | Modal test window | Fixed | Inline panel instead |
+
+## AI Integration Issues & Solutions
+
+### Debugging AI Integration
+```bash
+# Check AI provider status
+tail -f /tmp/whisper_pro.log | grep -i "ai\|provider\|enhancement"
+
+# Test provider connectivity
+python3 -c "import requests; print('Network OK' if requests.get('https://api.openai.com', timeout=5).status_code else 'Network Issue')"
+
+# Validate API key format
+python3 -c "import os; key = os.getenv('OPENAI_API_KEY'); print('Valid key format' if key and key.startswith('sk-') else 'Invalid key')"
+
+# Debug enhancement process
+python3 -c "from whisper_transcribe_pro import WhisperTranscribePro; app = WhisperTranscribePro(); app.debug_enhancement_process()"
+```
+
+### Common AI Issues
+
+| Issue | Cause | Solution |
+|-------|--------|----------|
+| API key invalid | Wrong format/expired | Check key format in settings (Line 1175) |
+| Network timeout | Connection issues | Increase timeout in `enhance_with_ai()` (Line ~750) |
+| Rate limiting | Too many requests | Implement backoff in provider classes (Line ~800) |
+| Empty responses | Provider error | Check error handling in `call_ai_provider()` (Line ~850) |
+| Enhancement failed | Model unavailable | Fallback logic in `enhance_transcription()` (Line ~780) |
+
+### Important AI Code Sections
+
+#### Core AI Integration
+- `HailoIntegration` class initialization (Lines 55-85)
+- AI enhancement toggle (Lines 720-740)
+- Provider selection logic (Lines 760-790)
+- Error handling for AI calls (Lines 810-840)
+
+#### Provider Implementations
+- OpenAI integration (Lines 870-920)
+- Anthropic Claude integration (Lines 930-980)
+- Groq integration (Lines 990-1040)
+- Provider testing methods (Lines 1050-1100)
+
+#### Settings & UI
+- AI settings tab (Lines 1150-1200)
+- Provider configuration (Lines 1210-1260)
+- API key management (Lines 1270-1300)
+- Enhancement status display (Lines 1310-1340)
 
 ## Git Workflow
 
@@ -114,5 +183,12 @@ git push -u origin feature/new-feature
 - `transcribe_audio()` - Whisper processing (Line ~450)
 - `export_transcription()` - Save to file (Line ~620)
 - `toggle_test_microphone()` - Inline test (Line 1359)
+
+### AI Integration Methods
+- `enhance_with_ai()` - Core AI enhancement (Line ~750)
+- `call_ai_provider()` - Provider interface (Line ~850)
+- `test_ai_integration()` - Connectivity test (Line ~700)
+- `setup_ai_providers()` - Provider initialization (Line ~680)
+- `handle_ai_error()` - Error management (Line ~900)
 
 See `PROJECT_MAP.md` for complete line references and component details.

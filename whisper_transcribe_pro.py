@@ -1308,7 +1308,24 @@ class WhisperTranscribePro(ctk.CTk):
                 self.show_notification(f"AI provider not available: {provider.get_status()}", "error")
                 return
         
+        # Validate that we have transcription history
+        if not self.transcription_history:
+            self.show_notification("No transcription to send", "warning")
+            return
+            
         last_transcription = self.transcription_history[-1]
+        
+        # Input validation - sanitize and validate the text
+        if not last_transcription or not last_transcription.strip():
+            self.show_notification("Empty transcription - nothing to send", "warning")
+            return
+        
+        # Limit text length to prevent excessive API usage
+        max_length = 4000  # Reasonable limit for most AI providers
+        if len(last_transcription) > max_length:
+            last_transcription = last_transcription[:max_length] + "..."
+            logging.info(f"Truncated long transcription from {len(last_transcription)} to {max_length} chars")
+        
         self.show_notification("Sending to AI...", "info")
         
         # Process in background thread
@@ -1325,13 +1342,18 @@ class WhisperTranscribePro(ctk.CTk):
                     else:
                         result = {"success": True, "response": response}
                 
-                # Update UI in main thread
-                self.after(0, lambda: self._handle_ai_response(result, last_transcription))
+                # Update UI in main thread (fix thread safety by capturing values)
+                def handle_response(res=result, txt=last_transcription):
+                    self._handle_ai_response(res, txt)
+                self.after(0, handle_response)
                 
             except Exception as e:
                 error_result = {"success": False, "error": f"Unexpected error: {str(e)}"}
-                self.after(0, lambda: self._handle_ai_response(error_result, last_transcription))
+                def handle_error(res=error_result, txt=last_transcription):
+                    self._handle_ai_response(res, txt)
+                self.after(0, handle_error)
         
+        # Import at top of method to avoid repeated imports
         import threading
         thread = threading.Thread(target=process_ai, daemon=True)
         thread.start()
@@ -1345,6 +1367,17 @@ class WhisperTranscribePro(ctk.CTk):
         # Check if AI is enabled
         if not self.settings.settings.get("ai_enabled", False):
             return
+        
+        # Input validation - sanitize and validate the text
+        if not text or not text.strip():
+            logging.debug("Skipping auto-send of empty transcription")
+            return
+        
+        # Limit text length to prevent excessive API usage
+        max_length = 4000  # Reasonable limit for most AI providers
+        if len(text) > max_length:
+            text = text[:max_length] + "..."
+            logging.info(f"Auto-send: Truncated long transcription to {max_length} chars")
         
         # Get current AI provider
         provider = self.get_current_ai_provider()
@@ -1379,13 +1412,18 @@ class WhisperTranscribePro(ctk.CTk):
                     else:
                         result = {"success": True, "response": response}
                 
-                # Update UI in main thread
-                self.after(0, lambda: self._handle_ai_response(result, text))
+                # Update UI in main thread (fix thread safety by capturing values)
+                def handle_response(res=result, txt=text):
+                    self._handle_ai_response(res, txt)
+                self.after(0, handle_response)
                 
             except Exception as e:
                 error_result = {"success": False, "error": f"Unexpected error: {str(e)}"}
-                self.after(0, lambda: self._handle_ai_response(error_result, text))
+                def handle_error(res=error_result, txt=text):
+                    self._handle_ai_response(res, txt)
+                self.after(0, handle_error)
         
+        # Import at top of method to avoid repeated imports
         import threading
         thread = threading.Thread(target=process_ai, daemon=True)
         thread.start()
