@@ -240,6 +240,13 @@ class LocalAI:
         self.models_dir = self.llm_dir / "models"
         self.current_model = None
         
+        # TinyLlama model info
+        self.tinyllama_info = {
+            "filename": "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf",
+            "url": "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf",
+            "size_mb": 638  # Approximate size in MB
+        }
+        
     def is_enabled(self):
         """Check if AI is enabled in settings"""
         return self.settings.settings.get("ai_enabled", False)
@@ -251,11 +258,63 @@ class LocalAI:
         
         models = []
         for model_file in self.models_dir.glob("*.gguf"):
-            models.append(model_file.name)
+            # Check if it's a real file (not a broken symlink)
+            if model_file.exists() and model_file.stat().st_size > 1024*1024:  # > 1MB
+                models.append(model_file.name)
         return sorted(models)
+    
+    def is_tinyllama_available(self):
+        """Check if TinyLlama model is available locally"""
+        model_path = self.models_dir / self.tinyllama_info["filename"]
+        # Check if file exists and is not a broken symlink
+        try:
+            return model_path.exists() and model_path.stat().st_size > 100*1024*1024  # > 100MB
+        except:
+            return False
+    
+    def download_tinyllama(self, progress_callback=None):
+        """Download TinyLlama model with progress tracking"""
+        import requests
+        
+        # Create models directory if it doesn't exist
+        self.models_dir.mkdir(parents=True, exist_ok=True)
+        
+        model_path = self.models_dir / self.tinyllama_info["filename"]
+        url = self.tinyllama_info["url"]
+        
+        try:
+            # Start download with streaming
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+            
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded = 0
+            
+            # Write to file with progress updates
+            with open(model_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if progress_callback:
+                            progress_callback(downloaded, total_size)
+            
+            return True
+        except Exception as e:
+            # Clean up partial download
+            if model_path.exists():
+                model_path.unlink()
+            logging.error(f"Failed to download TinyLlama: {e}")
+            return False
     
     def start_server(self, model_name=None):
         """Start the local LLM server"""
+        # If trying to start TinyLlama and it's not available, return False
+        if model_name and model_name == self.tinyllama_info["filename"]:
+            if not self.is_tinyllama_available():
+                logging.warning("TinyLlama not available locally, cannot start server")
+                return False
+        
         # Check if any server is running (ours or external)
         if self.is_server_running():
             # Server already running, need to restart with new model
@@ -1694,15 +1753,40 @@ class SettingsWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=10)
         ).pack(anchor="w", padx=20, pady=2)
         
+        # Check if TinyLlama is available
+        if not self.parent.local_ai.is_tinyllama_available():
+            # Show download option
+            download_frame = ctk.CTkFrame(model_frame)
+            download_frame.pack(padx=10, pady=5)
+            
+            ctk.CTkLabel(
+                download_frame,
+                text="TinyLlama model not found locally",
+                font=ctk.CTkFont(size=11),
+                text_color="orange"
+            ).pack(side="left", padx=5)
+            
+            self.download_btn = ctk.CTkButton(
+                download_frame,
+                text="Download TinyLlama (638 MB)",
+                command=self.download_tinyllama,
+                width=200
+            )
+            self.download_btn.pack(side="left", padx=5)
+        
         # Get available models from the LLM server
         try:
             available_models = self.get_available_ai_models()
         except:
-            available_models = ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf", "mistral-7b-instruct-v0.2.Q4_K_M.gguf"]
+            available_models = []
+        
+        # Always include TinyLlama in the list (even if not downloaded yet)
+        if "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf" not in available_models:
+            available_models.insert(0, "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
         
         self.ai_model_combo = ctk.CTkComboBox(
             model_frame,
-            values=available_models,
+            values=available_models if available_models else ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"],
             width=400,
             height=35
         )
@@ -2263,6 +2347,82 @@ class SettingsWindow(ctk.CTkToplevel):
             self.update_ai_server_status()
         except Exception as e:
             self.parent.show_notification(f"Error stopping AI server: {str(e)}", "error")
+    
+    def download_tinyllama(self):
+        """Download TinyLlama model with progress dialog"""
+        # Create progress dialog
+        progress_dialog = ctk.CTkToplevel(self)
+        progress_dialog.title("Downloading TinyLlama")
+        progress_dialog.geometry("450x150")
+        progress_dialog.transient(self)
+        progress_dialog.grab_set()
+        
+        # Center the dialog
+        progress_dialog.update_idletasks()
+        x = (progress_dialog.winfo_screenwidth() // 2) - (450 // 2)
+        y = (progress_dialog.winfo_screenheight() // 2) - (150 // 2)
+        progress_dialog.geometry(f"450x150+{x}+{y}")
+        
+        # Progress widgets
+        progress_label = ctk.CTkLabel(
+            progress_dialog,
+            text="Downloading TinyLlama model (638 MB)...",
+            font=ctk.CTkFont(size=12)
+        )
+        progress_label.pack(pady=10)
+        
+        progress_bar = ctk.CTkProgressBar(progress_dialog, width=400)
+        progress_bar.pack(pady=10)
+        progress_bar.set(0)
+        
+        status_label = ctk.CTkLabel(
+            progress_dialog,
+            text="Starting download...",
+            font=ctk.CTkFont(size=10)
+        )
+        status_label.pack(pady=5)
+        
+        # Download in background thread
+        import threading
+        download_success = False
+        
+        def download_thread():
+            nonlocal download_success
+            def update_progress(downloaded, total):
+                if total > 0:
+                    percent = (downloaded / total) * 100
+                    mb_downloaded = downloaded / (1024*1024)
+                    mb_total = total / (1024*1024)
+                    
+                    # Update UI in main thread
+                    progress_dialog.after(0, lambda: progress_bar.set(percent / 100))
+                    progress_dialog.after(0, lambda: status_label.configure(
+                        text=f"{mb_downloaded:.1f} MB / {mb_total:.1f} MB ({percent:.0f}%)"
+                    ))
+            
+            download_success = self.parent.local_ai.download_tinyllama(update_progress)
+            
+            # Close dialog and update UI
+            progress_dialog.after(0, lambda: self.on_download_complete(progress_dialog, download_success))
+        
+        thread = threading.Thread(target=download_thread, daemon=True)
+        thread.start()
+    
+    def on_download_complete(self, dialog, success):
+        """Handle download completion"""
+        dialog.destroy()
+        
+        if success:
+            self.parent.show_notification("TinyLlama downloaded successfully!")
+            # Hide download button and refresh model list
+            if hasattr(self, 'download_btn'):
+                self.download_btn.pack_forget()
+            # Refresh available models
+            available_models = self.get_available_ai_models()
+            self.ai_model_combo.configure(values=available_models)
+            self.ai_model_combo.set("tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
+        else:
+            self.parent.show_notification("Failed to download TinyLlama", "error")
     
     def update_ai_server_status(self):
         """Update AI server status display"""
