@@ -1,148 +1,5 @@
 [
   {
-    "timestamp": "2025-08-16T10:51:38.536241",
-    "user": "Remember he tests too.",
-    "assistant": "Remember he tests too.",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpc3h1a59c.wav",
-      "confidence_score": 0.2527211308479309,
-      "audio_duration": 1.996875,
-      "processing_time": 1755363098.0069003,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.0,
-          "text": " Remember he tests too.",
-          "tokens": [
-            50364,
-            5459,
-            415,
-            6921,
-            886,
-            13,
-            50464
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7472788691520691,
-          "compression_ratio": 0.7333333333333333,
-          "no_speech_prob": 0.08135362714529037
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T10:58:45.197467",
-    "user": "Test transcription only",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "confidence_score": 0.95,
-      "audio_duration": 2.0
-    }
-  },
-  {
-    "timestamp": "2025-08-16T11:00:22.102632",
-    "user": "Test one, test one, test one, test one, test two, memory.",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpejslqhp0.wav",
-      "confidence_score": 0.26079921722412114,
-      "audio_duration": 4.1795625,
-      "processing_time": 1755363622.102608,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 4.0,
-          "text": " Test one, test one, test one, test one, test two, memory.",
-          "tokens": [
-            50364,
-            9279,
-            472,
-            11,
-            1500,
-            472,
-            11,
-            1500,
-            472,
-            11,
-            1500,
-            472,
-            11,
-            1500,
-            732,
-            11,
-            4675,
-            13,
-            50564
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7392007827758789,
-          "compression_ratio": 1.7272727272727273,
-          "no_speech_prob": 0.04857898876070976
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T11:00:22.672805",
-    "user": "Test one, test one, test one, test one, test two, memory.",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpejslqhp0.wav",
-      "confidence_score": 0.26079921722412114,
-      "audio_duration": 4.1795625,
-      "processing_time": 1755363622.102608,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 4.0,
-          "text": " Test one, test one, test one, test one, test two, memory.",
-          "tokens": [
-            50364,
-            9279,
-            472,
-            11,
-            1500,
-            472,
-            11,
-            1500,
-            472,
-            11,
-            1500,
-            472,
-            11,
-            1500,
-            732,
-            11,
-            4675,
-            13,
-            50564
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7392007827758789,
-          "compression_ratio": 1.7272727272727273,
-          "no_speech_prob": 0.04857898876070976
-        }
-      ]
-    }
-  },
-  {
     "timestamp": "2025-08-16T11:00:42.997076",
     "user": "Jay correlate Okay...",
     "assistant": "",
@@ -396,6 +253,294 @@
           "avg_logprob": -0.6591430770026313,
           "compression_ratio": 0.8888888888888888,
           "no_speech_prob": 0.1399337649345398
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:37:39.304746",
+    "user": "Testing testing, this is a test.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpz3fhwly4.wav",
+      "confidence_score": 0.4171995249661532,
+      "audio_duration": 2.1361875,
+      "processing_time": 1755365859.3047175,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 2.0,
+          "text": " Testing testing, this is a test.",
+          "tokens": [
+            50364,
+            45517,
+            4997,
+            11,
+            341,
+            307,
+            257,
+            1500,
+            13,
+            50464
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.5828004750338468,
+          "compression_ratio": 1.032258064516129,
+          "no_speech_prob": 0.06713862717151642
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:37:40.101977",
+    "user": "Testing testing, this is a test.",
+    "assistant": "Testing testing, this is a test.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpz3fhwly4.wav",
+      "confidence_score": 0.4171995249661532,
+      "audio_duration": 2.1361875,
+      "processing_time": 1755365859.3047175,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 2.0,
+          "text": " Testing testing, this is a test.",
+          "tokens": [
+            50364,
+            45517,
+            4997,
+            11,
+            341,
+            307,
+            257,
+            1500,
+            13,
+            50464
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.5828004750338468,
+          "compression_ratio": 1.032258064516129,
+          "no_speech_prob": 0.06713862717151642
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:38:13.376298",
+    "user": "So the memory, the modal window and it loads, there's nothing in the window, it's a blank page. Also when I'm returning to the app, my memory from the past sessions is not loading either.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpkghx0p6g.wav",
+      "confidence_score": 0.5575282152961283,
+      "audio_duration": 16.2539375,
+      "processing_time": 1755365893.3762755,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 7.28,
+          "text": " So the memory, the modal window and it loads, there's nothing in the window, it's a blank",
+          "tokens": [
+            50364,
+            407,
+            264,
+            4675,
+            11,
+            264,
+            39745,
+            4910,
+            293,
+            309,
+            12668,
+            11,
+            456,
+            311,
+            1825,
+            294,
+            264,
+            4910,
+            11,
+            309,
+            311,
+            257,
+            8247,
+            50728
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4424717847038718,
+          "compression_ratio": 1.4274809160305344,
+          "no_speech_prob": 0.04637213423848152
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 7.28,
+          "end": 14.88,
+          "text": " page. Also when I'm returning to the app, my memory from the past sessions is not loading",
+          "tokens": [
+            50728,
+            3028,
+            13,
+            2743,
+            562,
+            286,
+            478,
+            12678,
+            281,
+            264,
+            724,
+            11,
+            452,
+            4675,
+            490,
+            264,
+            1791,
+            11081,
+            307,
+            406,
+            15114,
+            51108
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4424717847038718,
+          "compression_ratio": 1.4274809160305344,
+          "no_speech_prob": 0.04637213423848152
+        },
+        {
+          "id": 2,
+          "seek": 0,
+          "start": 14.88,
+          "end": 15.6,
+          "text": " either.",
+          "tokens": [
+            51108,
+            2139,
+            13,
+            51144
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4424717847038718,
+          "compression_ratio": 1.4274809160305344,
+          "no_speech_prob": 0.04637213423848152
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T11:38:16.271244",
+    "user": "So the memory, the modal window and it loads, there's nothing in the window, it's a blank page. Also when I'm returning to the app, my memory from the past sessions is not loading either.",
+    "assistant": "I'm not sure what's happening with your memory. Can you please try to clear your browser cache and cookies? This may help.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpkghx0p6g.wav",
+      "confidence_score": 0.5575282152961283,
+      "audio_duration": 16.2539375,
+      "processing_time": 1755365893.3762755,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 7.28,
+          "text": " So the memory, the modal window and it loads, there's nothing in the window, it's a blank",
+          "tokens": [
+            50364,
+            407,
+            264,
+            4675,
+            11,
+            264,
+            39745,
+            4910,
+            293,
+            309,
+            12668,
+            11,
+            456,
+            311,
+            1825,
+            294,
+            264,
+            4910,
+            11,
+            309,
+            311,
+            257,
+            8247,
+            50728
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4424717847038718,
+          "compression_ratio": 1.4274809160305344,
+          "no_speech_prob": 0.04637213423848152
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 7.28,
+          "end": 14.88,
+          "text": " page. Also when I'm returning to the app, my memory from the past sessions is not loading",
+          "tokens": [
+            50728,
+            3028,
+            13,
+            2743,
+            562,
+            286,
+            478,
+            12678,
+            281,
+            264,
+            724,
+            11,
+            452,
+            4675,
+            490,
+            264,
+            1791,
+            11081,
+            307,
+            406,
+            15114,
+            51108
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4424717847038718,
+          "compression_ratio": 1.4274809160305344,
+          "no_speech_prob": 0.04637213423848152
+        },
+        {
+          "id": 2,
+          "seek": 0,
+          "start": 14.88,
+          "end": 15.6,
+          "text": " either.",
+          "tokens": [
+            51108,
+            2139,
+            13,
+            51144
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.4424717847038718,
+          "compression_ratio": 1.4274809160305344,
+          "no_speech_prob": 0.04637213423848152
         }
       ]
     }

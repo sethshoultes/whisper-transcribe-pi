@@ -212,5 +212,57 @@
     ],
     "first_seen": "2025-08-16T11:02:30.194202",
     "last_seen": "2025-08-16T11:02:30.194202"
+  },
+  "general_6_words": {
+    "intent": "general",
+    "average_word_count": 6,
+    "examples": [
+      "Testing testing, this is a test."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.4171995249661532
+    ],
+    "first_seen": "2025-08-16T11:37:39.349500",
+    "last_seen": "2025-08-16T11:37:39.349500"
+  },
+  "transcription_request_6_words": {
+    "intent": "transcription_request",
+    "average_word_count": 6,
+    "examples": [
+      "Testing testing, this is a test."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.4171995249661532
+    ],
+    "first_seen": "2025-08-16T11:37:40.148305",
+    "last_seen": "2025-08-16T11:37:40.148305"
+  },
+  "question_35_words": {
+    "intent": "question",
+    "average_word_count": 19,
+    "examples": [
+      "So the memory, the modal window and it loads, there's nothing in the window, it's a blank page. Also"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5575282152961283
+    ],
+    "first_seen": "2025-08-16T11:38:13.425519",
+    "last_seen": "2025-08-16T11:38:13.425519"
+  },
+  "transcription_request_35_words": {
+    "intent": "transcription_request",
+    "average_word_count": 19,
+    "examples": [
+      "So the memory, the modal window and it loads, there's nothing in the window, it's a blank page. Also"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5575282152961283
+    ],
+    "first_seen": "2025-08-16T11:38:16.320390",
+    "last_seen": "2025-08-16T11:38:16.320390"
   }
 }

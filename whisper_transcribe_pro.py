@@ -1637,7 +1637,7 @@ class WhisperTranscribePro(ctk.CTk):
             
             # Try to get from conversation memory (SQLite)
             try:
-                recent = self.voice_memory.conversation_memory.get_recent(limit=20)
+                recent = self.voice_memory.conversation_memory.get_recent(limit=20, session_only=False)
                 for conv in recent:
                     confidence = conv.get('transcription_confidence', 0.0)
                     if confidence is None:
@@ -1654,19 +1654,26 @@ class WhisperTranscribePro(ctk.CTk):
                 import traceback
                 traceback.print_exc()
             
-            # Also check context memory (JSON)
+            # Also check context memory (JSON) - get conversation history directly
             try:
-                context_data = self.voice_memory.context_memory.get_recent_context(limit=20, voice_only=True)
-                for item in context_data:
-                    # Handle both dict and string items from context
-                    if isinstance(item, dict) and 'user' in item:
-                        conversations.append({
-                            'timestamp': item.get('timestamp', ''),
-                            'user_input': item.get('user', ''),
-                            'assistant_response': item.get('assistant', ''),
-                            'confidence': item.get('audio_metadata', {}).get('confidence_score', 0.0),
-                            'source': 'context'
-                        })
+                if hasattr(self.voice_memory.context_memory, 'conversation_history'):
+                    context_conversations = self.voice_memory.context_memory.conversation_history
+                    # Filter for voice interactions if available
+                    for conv in context_conversations[-20:]:  # Get last 20
+                        if conv.get('interaction_type') == 'voice' or not conv.get('interaction_type'):
+                            # Parse audio metadata if available
+                            audio_meta = conv.get('audio_metadata', {})
+                            confidence = audio_meta.get('confidence_score', 0.0) if audio_meta else 0.0
+                            
+                            conversations.append({
+                                'timestamp': conv.get('timestamp', ''),
+                                'user_input': conv.get('user', ''),
+                                'assistant_response': conv.get('assistant', ''),
+                                'confidence': confidence,
+                                'source': 'context'
+                            })
+                else:
+                    logging.debug("Context memory has no conversation_history attribute")
             except Exception as e:
                 logging.error(f"Failed to load from context memory: {e}")
                 # Don't print traceback for context memory as it's not critical

@@ -33,8 +33,8 @@ class VoiceConversationMemory:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Current session tracking - MUST be before _init_database()
-        self.current_session_id = str(uuid.uuid4())
+        # Current session tracking - initialized before DB connection
+        self.current_session_id = None
         self.session_start = datetime.now()
         
         # Connect with row factory for dict-like access
@@ -47,6 +47,9 @@ class VoiceConversationMemory:
         
         # Initialize database schema
         self._init_database()
+        
+        # Determine session ID after database is ready
+        self._determine_session_id()
         
         # In-memory cache for recent conversations
         self.cache = deque(maxlen=cache_size)
@@ -294,6 +297,36 @@ class VoiceConversationMemory:
         
         # Start new session
         self._start_session()
+    
+    def _determine_session_id(self):
+        """Determine whether to continue recent session or create new one"""
+        try:
+            cursor = self.conn.cursor()
+            
+            # Check for recent sessions (within last 4 hours)
+            cutoff_time = datetime.now() - timedelta(hours=4)
+            cursor.execute("""
+                SELECT id, start_time, end_time FROM voice_sessions
+                WHERE start_time > ? AND (end_time IS NULL OR end_time > ?)
+                ORDER BY start_time DESC LIMIT 1
+            """, (cutoff_time.isoformat(), cutoff_time.isoformat()))
+            
+            recent_session = cursor.fetchone()
+            
+            if recent_session and not recent_session['end_time']:
+                # Continue the recent unfinished session
+                self.current_session_id = recent_session['id']
+                self.session_start = datetime.fromisoformat(recent_session['start_time'])
+                self.logger.info(f"Continuing recent session: {self.current_session_id}")
+            else:
+                # Create new session
+                self.current_session_id = str(uuid.uuid4())
+                self.logger.info(f"Starting new session: {self.current_session_id}")
+                
+        except Exception as e:
+            # Fallback to new session if anything goes wrong
+            self.current_session_id = str(uuid.uuid4())
+            self.logger.warning(f"Could not determine session, creating new: {e}")
     
     def _start_session(self):
         """Start a new voice conversation session"""
