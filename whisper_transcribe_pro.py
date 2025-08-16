@@ -21,6 +21,7 @@ import platform
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any
+from abc import ABC, abstractmethod
 import customtkinter as ctk
 from PIL import Image, ImageDraw
 from scipy import signal
@@ -230,6 +231,415 @@ class HailoIntegration:
             logging.warning(f"Hailo audio enhancement failed: {e}")
             return audio_data
 
+class AIProvider(ABC):
+    """Abstract base class for AI providers"""
+    
+    @abstractmethod
+    def send_message(self, text: str) -> str:
+        """Send text message and get response"""
+        pass
+    
+    @abstractmethod
+    def is_available(self) -> bool:
+        """Check if provider is ready and available"""
+        pass
+    
+    @abstractmethod
+    def get_name(self) -> str:
+        """Return provider name"""
+        pass
+    
+    @abstractmethod
+    def get_status(self) -> str:
+        """Return current status description"""
+        pass
+
+class ClaudeAPIProvider(AIProvider):
+    """Claude API provider using Anthropic's API"""
+    
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv('ANTHROPIC_API_KEY')
+        self.model = "claude-3-haiku-20240307"
+        self.client = None
+        self._setup_client()
+    
+    def _setup_client(self):
+        """Setup the Anthropic client"""
+        if not self.api_key:
+            logging.warning("Claude API key not found. Set ANTHROPIC_API_KEY environment variable.")
+            return
+        
+        try:
+            import anthropic
+            self.client = anthropic.Anthropic(api_key=self.api_key)
+            logging.info("Claude API client initialized successfully")
+        except ImportError:
+            logging.error("anthropic library not installed. Run: pip install anthropic")
+        except Exception as e:
+            logging.error(f"Failed to initialize Claude API client: {e}")
+    
+    def send_message(self, text: str) -> str:
+        """Send message to Claude API"""
+        if not self.client:
+            return "Error: Claude API not available. Check API key and internet connection."
+        
+        try:
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=1000,
+                messages=[
+                    {"role": "user", "content": text}
+                ]
+            )
+            return response.content[0].text
+        
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "rate limit" in error_msg:
+                return "Error: Rate limit exceeded. Please wait before trying again."
+            elif "invalid api key" in error_msg or "authentication" in error_msg:
+                return "Error: Invalid API key. Please check your Anthropic API key."
+            elif "network" in error_msg or "connection" in error_msg:
+                return "Error: Network connection failed. Check your internet connection."
+            else:
+                return f"Error: Claude API request failed - {e}"
+    
+    def is_available(self) -> bool:
+        """Check if Claude API is available"""
+        return self.client is not None and self.api_key is not None
+    
+    def get_name(self) -> str:
+        """Return provider name"""
+        return "Claude API (Haiku)"
+    
+    def get_status(self) -> str:
+        """Return current status"""
+        if not self.api_key:
+            return "Missing API key"
+        elif not self.client:
+            return "Client setup failed"
+        else:
+            return "Ready"
+
+class OpenAIProvider(AIProvider):
+    """OpenAI API provider"""
+    
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-3.5-turbo"):
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+        self.model = model
+        self.client = None
+        self._setup_client()
+    
+    def _setup_client(self):
+        """Setup the OpenAI client"""
+        if not self.api_key:
+            logging.warning("OpenAI API key not found. Set OPENAI_API_KEY environment variable.")
+            return
+        
+        try:
+            import openai
+            self.client = openai.OpenAI(api_key=self.api_key)
+            logging.info(f"OpenAI API client initialized successfully with model {self.model}")
+        except ImportError:
+            logging.error("openai library not installed. Run: pip install openai")
+        except Exception as e:
+            logging.error(f"Failed to initialize OpenAI API client: {e}")
+    
+    def send_message(self, text: str) -> str:
+        """Send message to OpenAI API"""
+        if not self.client:
+            return "Error: OpenAI API not available. Check API key and internet connection."
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "user", "content": text}
+                ],
+                max_tokens=1000,
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "rate limit" in error_msg:
+                return "Error: Rate limit exceeded. Please wait before trying again."
+            elif "invalid api key" in error_msg or "authentication" in error_msg:
+                return "Error: Invalid API key. Please check your OpenAI API key."
+            elif "network" in error_msg or "connection" in error_msg:
+                return "Error: Network connection failed. Check your internet connection."
+            elif "model" in error_msg and "not found" in error_msg:
+                return f"Error: Model {self.model} not available. Try gpt-3.5-turbo or gpt-4."
+            else:
+                return f"Error: OpenAI API request failed - {e}"
+    
+    def is_available(self) -> bool:
+        """Check if OpenAI API is available"""
+        return self.client is not None and self.api_key is not None
+    
+    def get_name(self) -> str:
+        """Return provider name"""
+        return f"OpenAI ({self.model})"
+    
+    def get_status(self) -> str:
+        """Return current status"""
+        if not self.api_key:
+            return "Missing API key"
+        elif not self.client:
+            return "Client setup failed"
+        else:
+            return f"Ready ({self.model})"
+    
+    def set_model(self, model: str):
+        """Change the model used by this provider"""
+        self.model = model
+        logging.info(f"OpenAI model changed to {model}")
+
+class LocalAI(AIProvider):
+    """Manage local LLM server integration"""
+    
+    def __init__(self, settings):
+        self.settings = settings
+        self.server_process = None
+        self.llm_dir = Path.home() / "simple-llm-server"
+        self.models_dir = self.llm_dir / "models"
+        self.current_model = None
+        
+        # TinyLlama model info
+        self.tinyllama_info = {
+            "filename": "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf",
+            "url": "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf",
+            "size_mb": 638  # Approximate size in MB
+        }
+        
+    def is_enabled(self):
+        """Check if AI is enabled in settings"""
+        return self.settings.settings.get("ai_enabled", False)
+    
+    def get_available_models(self):
+        """Get list of available .gguf models"""
+        if not self.models_dir.exists():
+            return []
+        
+        models = []
+        for model_file in self.models_dir.glob("*.gguf"):
+            # Check if it's a real file (not a broken symlink)
+            if model_file.exists() and model_file.stat().st_size > 1024*1024:  # > 1MB
+                models.append(model_file.name)
+        return sorted(models)
+    
+    def is_tinyllama_available(self):
+        """Check if TinyLlama model is available locally"""
+        model_path = self.models_dir / self.tinyllama_info["filename"]
+        # Check if file exists and is not a broken symlink
+        try:
+            return model_path.exists() and model_path.stat().st_size > 100*1024*1024  # > 100MB
+        except:
+            return False
+    
+    def download_tinyllama(self, progress_callback=None):
+        """Download TinyLlama model with progress tracking"""
+        import requests
+        
+        # Create models directory if it doesn't exist
+        self.models_dir.mkdir(parents=True, exist_ok=True)
+        
+        model_path = self.models_dir / self.tinyllama_info["filename"]
+        url = self.tinyllama_info["url"]
+        
+        try:
+            # Start download with streaming
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+            
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded = 0
+            
+            # Write to file with progress updates
+            with open(model_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if progress_callback:
+                            progress_callback(downloaded, total_size)
+            
+            return True
+        except Exception as e:
+            # Clean up partial download
+            if model_path.exists():
+                model_path.unlink()
+            logging.error(f"Failed to download TinyLlama: {e}")
+            return False
+    
+    def start_server(self, model_name=None):
+        """Start the local LLM server"""
+        # If trying to start TinyLlama and it's not available, return False
+        if model_name and model_name == self.tinyllama_info["filename"]:
+            if not self.is_tinyllama_available():
+                logging.warning("TinyLlama not available locally, cannot start server")
+                return False
+        
+        # Check if any server is running (ours or external)
+        if self.is_server_running():
+            # Server already running, need to restart with new model
+            self.stop_server()
+            import time
+            time.sleep(2)  # Give more time for shutdown
+            
+        try:
+            env_dir = self.llm_dir / "env"
+            if not env_dir.exists():
+                return False
+                
+            # Use llm_api_server.py with model parameter
+            cmd = [
+                str(env_dir / "bin" / "python"),
+                str(self.llm_dir / "llm_api_server.py")
+            ]
+            
+            # Add model parameter if specified
+            if model_name:
+                cmd.extend(["--model", model_name])
+            
+            # Start server in background
+            self.server_process = subprocess.Popen(
+                cmd,
+                cwd=str(self.llm_dir),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            
+            # Give it a moment to start
+            import time
+            time.sleep(3)  # Give more time for model loading
+            
+            if self.server_process.poll() is None:
+                self.current_model = model_name if model_name else "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            logging.error(f"Failed to start AI server: {e}")
+            return False
+    
+    def stop_server(self):
+        """Stop the local LLM server"""
+        # First try to stop our tracked process
+        if self.server_process:
+            self.server_process.terminate()
+            self.server_process = None
+        
+        # Also kill any other llm_api_server processes on port 7861
+        try:
+            # Find and kill any process using port 7861
+            result = subprocess.run(
+                ["lsof", "-ti", ":7861"],
+                capture_output=True,
+                text=True
+            )
+            if result.stdout.strip():
+                pids = result.stdout.strip().split('\n')
+                for pid in pids:
+                    try:
+                        subprocess.run(["kill", pid], check=False)
+                    except:
+                        pass
+        except:
+            pass
+    
+    def is_server_running(self):
+        """Check if server is running"""
+        if self.server_process and self.server_process.poll() is None:
+            return True
+        
+        # Check if simple_api.py is running on port 7861
+        try:
+            import requests
+            response = requests.get("http://localhost:7861/health", timeout=2)
+            if response.status_code == 200:
+                # Get the actual model from the server
+                data = response.json()
+                if 'model' in data:
+                    # Extract just the model filename from the path
+                    model_path = data['model']
+                    self.current_model = model_path.split('/')[-1] if '/' in model_path else model_path
+                return True
+            return False
+        except:
+            return False
+    
+    def get_current_model(self):
+        """Get the currently loaded model name"""
+        if self.is_server_running() and self.current_model:
+            # Return shortened name for display
+            model_map = {
+                "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf": "TinyLlama",
+                "phi-2.Q4_K_M.gguf": "Phi-2",
+                "mistral-7b-instruct-v0.2.Q4_K_M.gguf": "Mistral-7B"
+            }
+            return model_map.get(self.current_model, self.current_model.replace(".gguf", ""))
+        return None
+    
+    def send_to_ai(self, text):
+        """Send text to local AI and get response"""
+        if not self.is_server_running():
+            return {"success": False, "error": "AI server not running"}
+            
+        try:
+            import requests
+            # Call simple_api.py endpoint
+            response = requests.post(
+                "http://localhost:7861/api/generate",
+                json={
+                    "prompt": text
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                ai_response = result.get("response", "No response")
+                return {"success": True, "response": ai_response}
+            else:
+                return {"success": False, "error": f"API error: {response.status_code}"}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    # AIProvider interface implementation
+    def send_message(self, text: str) -> str:
+        """Send message to local AI server (AIProvider interface)"""
+        result = self.send_to_ai(text)
+        if result["success"]:
+            return result["response"]
+        else:
+            return f"Error: {result['error']}"
+    
+    def is_available(self) -> bool:
+        """Check if local AI is available (AIProvider interface)"""
+        return self.is_server_running()
+    
+    def get_name(self) -> str:
+        """Return provider name (AIProvider interface)"""
+        current_model = self.get_current_model()
+        if current_model:
+            return f"Local AI ({current_model})"
+        else:
+            return "Local AI"
+    
+    def get_status(self) -> str:
+        """Return current status (AIProvider interface)"""
+        if not self.is_enabled():
+            return "Disabled in settings"
+        elif not self.is_server_running():
+            return "Server not running"
+        else:
+            model = self.get_current_model()
+            return f"Running ({model})" if model else "Running"
+
 class Settings:
     """Application settings management"""
     
@@ -257,7 +667,13 @@ class Settings:
                 "stop": "s",
                 "clear": "c",
                 "copy": "ctrl+c"
-            }
+            },
+            "ai_enabled": False,
+            "ai_auto_send": False,
+            "ai_provider": "local",
+            "claude_api_key": "",
+            "openai_api_key": "",
+            "openai_model": "gpt-3.5-turbo"
         }
         
         if self.config_path.exists():
@@ -288,6 +704,7 @@ class WhisperTranscribePro(ctk.CTk):
         self.settings = Settings()
         self.hailo = HailoIntegration()
         self.visualizer = AudioVisualizer()
+        self.local_ai = LocalAI(self.settings)
         
         # Audio/transcription state
         self.model = None
@@ -313,6 +730,9 @@ class WhisperTranscribePro(ctk.CTk):
         
         # Start UI update loop
         self.process_ui_queue()
+        
+        # Start periodic AI status check
+        self.check_ai_status()
     
     def setup_audio_device(self):
         """Configure audio input device"""
@@ -437,29 +857,61 @@ class WhisperTranscribePro(ctk.CTk):
         )
         self.record_button.grid(row=1, column=0, padx=20, pady=15, sticky="ew")
         
-        # Transcription Display
-        self.text_frame = ctk.CTkFrame(self.main_frame)
-        self.text_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
+        # Dual Panel Layout: Transcriptions + AI Responses
+        self.content_frame = ctk.CTkFrame(self.main_frame)
+        self.content_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
+        self.content_frame.grid_columnconfigure(0, weight=2)  # Transcription panel (wider)
+        self.content_frame.grid_columnconfigure(1, weight=1)  # AI panel (narrower)
+        self.content_frame.grid_rowconfigure(0, weight=1)
+        
+        # Transcription Panel
+        self.text_frame = ctk.CTkFrame(self.content_frame)
+        self.text_frame.grid(row=0, column=0, padx=(0, 5), pady=0, sticky="nsew")
         self.text_frame.grid_columnconfigure(0, weight=1)
-        self.text_frame.grid_rowconfigure(0, weight=1)
+        self.text_frame.grid_rowconfigure(1, weight=1)
+        
+        ctk.CTkLabel(
+            self.text_frame,
+            text="Transcriptions",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).grid(row=0, column=0, pady=5)
         
         self.text_display = ctk.CTkTextbox(
             self.text_frame,
             font=ctk.CTkFont(size=self.settings.settings["font_size"]),
             wrap="word"
         )
-        self.text_display.grid(row=0, column=0, sticky="nsew")
+        self.text_display.grid(row=1, column=0, sticky="nsew")
+        
+        # AI Response Panel (initially hidden if AI not enabled)
+        self.ai_frame = ctk.CTkFrame(self.content_frame)
+        self.ai_frame.grid_columnconfigure(0, weight=1)
+        self.ai_frame.grid_rowconfigure(1, weight=1)
+        
+        ctk.CTkLabel(
+            self.ai_frame,
+            text="AI Responses",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).grid(row=0, column=0, pady=5)
+        
+        self.ai_display = ctk.CTkTextbox(
+            self.ai_frame,
+            font=ctk.CTkFont(size=self.settings.settings["font_size"]),
+            wrap="word"
+        )
+        self.ai_display.grid(row=1, column=0, sticky="nsew")
         
         # Action Buttons Frame
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
-        self.button_frame.grid_columnconfigure((0,1,2,3,4), weight=1)
+        self.button_frame.grid_columnconfigure((0,1,2,3,4,5), weight=1)
         
         # Action Buttons (without emoji for Pi compatibility)
         buttons = [
             ("Copy Last", self.copy_last),
             ("Copy All", self.copy_all),
             ("Export", self.export_transcription),
+            ("Send to AI", self.send_to_ai),
             ("Search", self.search_transcription),
             ("Clear", self.clear_transcriptions)
         ]
@@ -482,10 +934,19 @@ class WhisperTranscribePro(ctk.CTk):
         # Info labels
         self.model_label = ctk.CTkLabel(
             self.bottom_frame,
-            text=f"Model: {self.settings.settings['model']}",
+            text=f"Whisper: {self.settings.settings['model']}",
             font=ctk.CTkFont(size=10)
         )
         self.model_label.grid(row=0, column=0, padx=5, pady=2)
+        
+        # AI Model label
+        self.ai_model_label = ctk.CTkLabel(
+            self.bottom_frame,
+            text="AI: Not Running",
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        )
+        self.ai_model_label.grid(row=0, column=1, padx=5, pady=2)
         
         # Hailo status label (shows actual enabled state, not just availability)
         hailo_status = "Hailo: ON" if (self.hailo.hailo_available and self.settings.settings.get("hailo_integration", False)) else "Hailo: OFF"
@@ -498,6 +959,9 @@ class WhisperTranscribePro(ctk.CTk):
             text_color=hailo_color
         )
         self.hailo_label.grid(row=0, column=2, padx=5, pady=2)
+        
+        # Show/hide AI panel based on setting (after all UI elements are created)
+        self.update_ai_panel_visibility()
         
         # Keyboard bindings
         self.bind('<r>', lambda e: self.toggle_recording())
@@ -724,6 +1188,11 @@ class WhisperTranscribePro(ctk.CTk):
                         'text': entry
                     })
                     
+                    # Auto-send to AI if enabled
+                    if (self.local_ai.is_enabled() and 
+                        self.settings.settings.get("ai_auto_send", False)):
+                        self.auto_send_to_ai(text)
+                    
                     # Copy to clipboard
                     self.copy_to_clipboard(text)
                     
@@ -803,8 +1272,138 @@ class WhisperTranscribePro(ctk.CTk):
     def clear_transcriptions(self):
         """Clear all transcriptions"""
         self.text_display.delete("1.0", "end")
+        self.ai_display.delete("1.0", "end")
         self.transcription_history.clear()
         self.update_status("Cleared", "green")
+    
+    def send_to_ai(self):
+        """Send last transcription to AI"""
+        if not self.transcription_history:
+            self.show_notification("No transcription to send", "warning")
+            return
+        
+        # Check if AI is enabled
+        if not self.settings.settings.get("ai_enabled", False):
+            self.show_notification("AI is disabled. Enable in settings.", "warning")
+            return
+        
+        # Get current AI provider
+        provider = self.get_current_ai_provider()
+        if not provider:
+            self.show_notification("AI provider not available. Check settings.", "error")
+            return
+        
+        # For local AI, check if server is running and start if needed
+        provider_type = self.settings.settings.get("ai_provider", "local")
+        if provider_type == "local":
+            if not self.local_ai.is_server_running():
+                self.show_notification("Starting AI server...", "info")
+                selected_model = self.settings.settings.get("ai_model", None)
+                if not self.local_ai.start_server(selected_model):
+                    self.show_notification("Failed to start AI server", "error")
+                    return
+        else:
+            # For API providers, check availability
+            if not provider.is_available():
+                self.show_notification(f"AI provider not available: {provider.get_status()}", "error")
+                return
+        
+        last_transcription = self.transcription_history[-1]
+        self.show_notification("Sending to AI...", "info")
+        
+        # Process in background thread
+        def process_ai():
+            try:
+                if provider_type == "local":
+                    # Use existing send_to_ai method for local AI
+                    result = self.local_ai.send_to_ai(last_transcription)
+                else:
+                    # Use send_message for API providers
+                    response = provider.send_message(last_transcription)
+                    if response.startswith("Error:"):
+                        result = {"success": False, "error": response}
+                    else:
+                        result = {"success": True, "response": response}
+                
+                # Update UI in main thread
+                self.after(0, lambda: self._handle_ai_response(result, last_transcription))
+                
+            except Exception as e:
+                error_result = {"success": False, "error": f"Unexpected error: {str(e)}"}
+                self.after(0, lambda: self._handle_ai_response(error_result, last_transcription))
+        
+        import threading
+        thread = threading.Thread(target=process_ai, daemon=True)
+        thread.start()
+    
+    def auto_send_to_ai(self, text):
+        """Automatically send transcription to AI if enabled"""
+        # Check if AI auto-send is enabled
+        if not self.settings.settings.get("ai_auto_send", False):
+            return
+        
+        # Check if AI is enabled
+        if not self.settings.settings.get("ai_enabled", False):
+            return
+        
+        # Get current AI provider
+        provider = self.get_current_ai_provider()
+        if not provider:
+            logging.warning("AI provider not available for auto-send")
+            return
+        
+        # For local AI, check if server is running and start if needed
+        provider_type = self.settings.settings.get("ai_provider", "local")
+        if provider_type == "local":
+            if not self.local_ai.is_server_running():
+                selected_model = self.settings.settings.get("ai_model", None)
+                if not self.local_ai.start_server(selected_model):
+                    return
+        else:
+            # For API providers, check availability
+            if not provider.is_available():
+                logging.warning(f"AI provider not available for auto-send: {provider.get_status()}")
+                return
+        
+        # Process in background thread
+        def process_ai():
+            try:
+                if provider_type == "local":
+                    # Use existing send_to_ai method for local AI
+                    result = self.local_ai.send_to_ai(text)
+                else:
+                    # Use send_message for API providers
+                    response = provider.send_message(text)
+                    if response.startswith("Error:"):
+                        result = {"success": False, "error": response}
+                    else:
+                        result = {"success": True, "response": response}
+                
+                # Update UI in main thread
+                self.after(0, lambda: self._handle_ai_response(result, text))
+                
+            except Exception as e:
+                error_result = {"success": False, "error": f"Unexpected error: {str(e)}"}
+                self.after(0, lambda: self._handle_ai_response(error_result, text))
+        
+        import threading
+        thread = threading.Thread(target=process_ai, daemon=True)
+        thread.start()
+    
+    def _handle_ai_response(self, result, original_text):
+        """Handle AI response in main thread"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        if result["success"]:
+            ai_text = f"[{timestamp}] User: {original_text[:50]}...\nAI: {result['response']}\n\n"
+            self.ai_display.insert("end", ai_text)
+            self.ai_display.see("end")
+            self.show_notification("AI responded", "success")
+        else:
+            error_text = f"[{timestamp}] Error: {result['error']}\n\n"
+            self.ai_display.insert("end", error_text)
+            self.ai_display.see("end")
+            self.show_notification(f"AI error: {result['error'][:30]}", "error")
     
     def open_settings(self):
         """Open settings window"""
@@ -821,10 +1420,108 @@ class WhisperTranscribePro(ctk.CTk):
             'color': color
         })
     
-    def show_notification(self, message):
+    def update_ai_panel_visibility(self):
+        """Show or hide AI panel based on settings"""
+        if self.local_ai.is_enabled():
+            # Show AI panel with proper grid weights
+            self.ai_frame.grid(row=0, column=1, padx=(5, 0), pady=0, sticky="nsew")
+            self.content_frame.grid_columnconfigure(0, weight=2)  # Transcription panel
+            self.content_frame.grid_columnconfigure(1, weight=1)  # AI panel
+        else:
+            # Hide AI panel and expand transcription panel
+            self.ai_frame.grid_forget()
+            self.content_frame.grid_columnconfigure(0, weight=1)  # Full width for transcription
+            self.content_frame.grid_columnconfigure(1, weight=0)  # No AI panel
+        
+        # Update AI model label
+        self.update_ai_model_label()
+    
+    def update_ai_model_label(self):
+        """Update the AI model label with current provider and status"""
+        provider_type = self.settings.settings.get("ai_provider", "local")
+        ai_enabled = self.settings.settings.get("ai_enabled", False)
+        
+        if not ai_enabled:
+            self.ai_model_label.configure(text="AI: Disabled", text_color="gray")
+            return
+        
+        # Get current provider
+        provider = self.get_current_ai_provider()
+        
+        if provider_type == "local":
+            # Local AI status
+            current_model = self.local_ai.get_current_model()
+            if current_model:
+                self.ai_model_label.configure(text=f"AI: {current_model}", text_color="green")
+            elif self.local_ai.is_server_running():
+                self.ai_model_label.configure(text="AI: Starting...", text_color="orange")
+            else:
+                self.ai_model_label.configure(text="AI: Local (Not Running)", text_color="orange")
+        
+        elif provider_type == "claude":
+            # Claude API status
+            if provider and provider.is_available():
+                self.ai_model_label.configure(text="AI: Claude API", text_color="green")
+            else:
+                self.ai_model_label.configure(text="AI: Claude (No API Key)", text_color="red")
+        
+        elif provider_type == "openai":
+            # OpenAI API status
+            if provider and provider.is_available():
+                model = self.settings.settings.get("openai_model", "gpt-3.5-turbo")
+                model_short = model.replace("gpt-", "GPT-")
+                self.ai_model_label.configure(text=f"AI: {model_short}", text_color="green")
+            else:
+                self.ai_model_label.configure(text="AI: OpenAI (No API Key)", text_color="red")
+        
+        else:
+            self.ai_model_label.configure(text="AI: Unknown", text_color="gray")
+    
+    def check_ai_status(self):
+        """Periodically check and update AI server status"""
+        self.update_ai_model_label()
+        # Check every 5 seconds
+        self.after(5000, self.check_ai_status)
+    
+    def get_current_ai_provider(self) -> Optional[AIProvider]:
+        """Get the currently selected AI provider instance"""
+        provider_type = self.settings.settings.get("ai_provider", "local")
+        
+        try:
+            if provider_type == "local":
+                return self.local_ai
+            elif provider_type == "claude":
+                api_key = self.settings.settings.get("claude_api_key", "")
+                if not api_key:
+                    logging.warning("Claude API key not configured")
+                    return None
+                return ClaudeAPIProvider(api_key)
+            elif provider_type == "openai":
+                api_key = self.settings.settings.get("openai_api_key", "")
+                model = self.settings.settings.get("openai_model", "gpt-3.5-turbo")
+                if not api_key:
+                    logging.warning("OpenAI API key not configured")
+                    return None
+                return OpenAIProvider(api_key, model)
+            else:
+                logging.error(f"Unknown AI provider: {provider_type}")
+                return None
+        except Exception as e:
+            logging.error(f"Failed to create AI provider {provider_type}: {e}")
+            return None
+    
+    def show_notification(self, message, notification_type="info"):
         """Show temporary notification"""
-        self.update_status(message, "yellow")
-        self.after(3000, lambda: self.update_status("* Ready", "green"))
+        color_map = {
+            "info": "blue",
+            "success": "green",
+            "warning": "orange",
+            "error": "red"
+        }
+        color = color_map.get(notification_type, "yellow")
+        self.update_status(message, color)
+        if notification_type != "error":
+            self.after(3000, lambda: self.update_status("* Ready", "green"))
     
     def process_ui_queue(self):
         """Process UI updates from queue"""
@@ -951,6 +1648,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.tabview.add("Audio")
         self.tabview.add("Transcription")
         self.tabview.add("Interface")
+        self.tabview.add("AI Integration")
         self.tabview.add("Advanced")
         
         # Audio Settings Tab
@@ -1344,6 +2042,276 @@ class SettingsWindow(ctk.CTkToplevel):
         self.font_slider.pack(anchor="w", padx=30, pady=5)
         self.font_slider.set(self.settings.settings.get("font_size", 12))
         
+        # AI Integration Settings Tab
+        ai_tab = self.tabview.tab("AI Integration")
+        ai_frame = ctk.CTkScrollableFrame(ai_tab, height=250)
+        ai_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Enable mouse wheel scrolling
+        self._bind_mousewheel(ai_frame)
+        
+        ctk.CTkLabel(
+            ai_frame,
+            text="AI Integration Settings",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(pady=10)
+        
+        # Provider selection comes FIRST
+        provider_frame = ctk.CTkFrame(ai_frame)
+        provider_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            provider_frame,
+            text="1. AI Provider Selection:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            provider_frame,
+            text="Choose your AI provider",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        # Initialize provider variable
+        self.ai_provider_var = ctk.StringVar(value=self.settings.settings.get("ai_provider", "local"))
+        self.claude_api_key_var = ctk.StringVar(value=self.settings.settings.get("claude_api_key", ""))
+        self.openai_api_key_var = ctk.StringVar(value=self.settings.settings.get("openai_api_key", ""))
+        self.openai_model_var = ctk.StringVar(value=self.settings.settings.get("openai_model", "gpt-3.5-turbo"))
+        
+        # Provider radio buttons
+        provider_radio_frame = ctk.CTkFrame(provider_frame)
+        provider_radio_frame.pack(padx=10, pady=5, fill="x")
+        
+        self.local_radio = ctk.CTkRadioButton(
+            provider_radio_frame,
+            text="Local AI (Run models on this device)",
+            variable=self.ai_provider_var,
+            value="local",
+            command=self.on_provider_change
+        )
+        self.local_radio.pack(anchor="w", padx=10, pady=3)
+        
+        self.claude_radio = ctk.CTkRadioButton(
+            provider_radio_frame,
+            text="Claude API (Anthropic's cloud service)",
+            variable=self.ai_provider_var,
+            value="claude",
+            command=self.on_provider_change
+        )
+        self.claude_radio.pack(anchor="w", padx=10, pady=3)
+        
+        self.openai_radio = ctk.CTkRadioButton(
+            provider_radio_frame,
+            text="OpenAI API (GPT models)",
+            variable=self.ai_provider_var,
+            value="openai",
+            command=self.on_provider_change
+        )
+        self.openai_radio.pack(anchor="w", padx=10, pady=3)
+        
+        # Claude API key input
+        self.claude_frame = ctk.CTkFrame(provider_frame)
+        self.claude_frame.pack(fill="x", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            self.claude_frame,
+            text="Claude API Key:",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).pack(anchor="w", padx=10, pady=(5,0))
+        
+        self.claude_api_entry = ctk.CTkEntry(
+            self.claude_frame,
+            textvariable=self.claude_api_key_var,
+            placeholder_text="Enter your Claude API key...",
+            show="*",
+            width=400
+        )
+        self.claude_api_entry.pack(padx=10, pady=(2,10))
+        # Save API key when it changes
+        self.claude_api_key_var.trace("w", lambda *args: self.save_api_keys())
+        
+        # OpenAI configuration
+        self.openai_frame = ctk.CTkFrame(provider_frame)
+        self.openai_frame.pack(fill="x", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            self.openai_frame,
+            text="OpenAI API Key:",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).pack(anchor="w", padx=10, pady=(5,0))
+        
+        self.openai_api_entry = ctk.CTkEntry(
+            self.openai_frame,
+            textvariable=self.openai_api_key_var,
+            placeholder_text="Enter your OpenAI API key...",
+            show="*",
+            width=400
+        )
+        self.openai_api_entry.pack(padx=10, pady=(2,5))
+        # Save API key when it changes
+        self.openai_api_key_var.trace("w", lambda *args: self.save_api_keys())
+        
+        ctk.CTkLabel(
+            self.openai_frame,
+            text="OpenAI Model:",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).pack(anchor="w", padx=10, pady=(5,0))
+        
+        self.openai_model_combo = ctk.CTkComboBox(
+            self.openai_frame,
+            values=["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"],
+            variable=self.openai_model_var,
+            width=400
+        )
+        self.openai_model_combo.pack(padx=10, pady=(2,10))
+        # Save model selection when it changes
+        self.openai_model_var.trace("w", lambda *args: self.save_api_keys())
+        
+        # Model selection comes SECOND - select model before starting server
+        self.model_frame = ctk.CTkFrame(ai_frame)
+        self.model_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            self.model_frame,
+            text="2. Local AI Model Selection:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            self.model_frame,
+            text="Select which local AI model to use (only for Local AI provider)",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        # Check if TinyLlama is available
+        if not self.parent.local_ai.is_tinyllama_available():
+            # Show download option
+            download_frame = ctk.CTkFrame(self.model_frame)
+            download_frame.pack(padx=10, pady=5)
+            
+            ctk.CTkLabel(
+                download_frame,
+                text="TinyLlama model not found locally",
+                font=ctk.CTkFont(size=11),
+                text_color="orange"
+            ).pack(side="left", padx=5)
+            
+            self.download_btn = ctk.CTkButton(
+                download_frame,
+                text="Download TinyLlama (638 MB)",
+                command=self.download_tinyllama,
+                width=200
+            )
+            self.download_btn.pack(side="left", padx=5)
+        
+        # Get available models from the LLM server
+        try:
+            available_models = self.get_available_ai_models()
+        except:
+            available_models = []
+        
+        # Always include TinyLlama in the list (even if not downloaded yet)
+        if "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf" not in available_models:
+            available_models.insert(0, "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
+        
+        self.ai_model_combo = ctk.CTkComboBox(
+            self.model_frame,
+            values=available_models if available_models else ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"],
+            width=400,
+            height=35
+        )
+        self.ai_model_combo.pack(padx=10, pady=5)
+        
+        # Set current model
+        current_model = self.settings.settings.get("ai_model", available_models[0] if available_models else "")
+        if current_model in available_models:
+            self.ai_model_combo.set(current_model)
+        else:
+            self.ai_model_combo.set(available_models[0] if available_models else "")
+        
+        # Server control comes SECOND - start server with selected model
+        self.server_frame = ctk.CTkFrame(ai_frame)
+        self.server_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            self.server_frame,
+            text="3. Local Server Control:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            self.server_frame,
+            text="Start the local AI server with the selected model (only for Local AI provider)",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        server_buttons_frame = ctk.CTkFrame(self.server_frame)
+        server_buttons_frame.pack(padx=10, pady=5)
+        
+        self.start_server_btn = ctk.CTkButton(
+            server_buttons_frame,
+            text="Start AI Server",
+            command=self.start_ai_server,
+            width=120
+        )
+        self.start_server_btn.pack(side="left", padx=5)
+        
+        self.stop_server_btn = ctk.CTkButton(
+            server_buttons_frame,
+            text="Stop AI Server",
+            command=self.stop_ai_server,
+            width=120
+        )
+        self.stop_server_btn.pack(side="left", padx=5)
+        
+        self.server_status_label = ctk.CTkLabel(
+            self.server_frame,
+            text="Server Status: Not Running",
+            font=ctk.CTkFont(size=11)
+        )
+        self.server_status_label.pack(padx=10, pady=5)
+        
+        # AI Enable/Disable comes THIRD - only enable after server is running
+        ai_enable_frame = ctk.CTkFrame(ai_frame)
+        ai_enable_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            ai_enable_frame,
+            text="4. Enable AI Features:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            ai_enable_frame,
+            text="Enable these features after configuring your AI provider",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        self.ai_enabled_var = ctk.BooleanVar(value=self.settings.settings.get("ai_enabled", False))
+        self.ai_enabled_checkbox = ctk.CTkCheckBox(
+            ai_enable_frame,
+            text="Enable AI Processing (shows AI panel)",
+            variable=self.ai_enabled_var,
+            command=self.on_ai_settings_change
+        )
+        self.ai_enabled_checkbox.pack(anchor="w", padx=20, pady=5)
+        
+        # Auto-send setting
+        self.ai_auto_send_var = ctk.BooleanVar(value=self.settings.settings.get("ai_auto_send", False))
+        self.ai_auto_send_checkbox = ctk.CTkCheckBox(
+            ai_enable_frame,
+            text="Automatically send transcriptions to AI",
+            variable=self.ai_auto_send_var,
+            command=self.on_ai_settings_change
+        )
+        self.ai_auto_send_checkbox.pack(anchor="w", padx=20, pady=5)
+        
+        # Set initial provider visibility
+        self.on_provider_change()
+        
+        # Update server status
+        self.update_ai_server_status()
+        
         # Advanced Settings Tab
         adv_tab = self.tabview.tab("Advanced")
         adv_frame = ctk.CTkScrollableFrame(adv_tab, height=250)
@@ -1674,6 +2642,24 @@ class SettingsWindow(ctk.CTkToplevel):
         if hasattr(self, 'hailo_var'):
             self.settings.settings["hailo_integration"] = self.hailo_var.get()
         
+        # AI Integration settings
+        if hasattr(self, 'ai_enabled_var'):
+            self.settings.settings["ai_enabled"] = self.ai_enabled_var.get()
+        if hasattr(self, 'ai_auto_send_var'):
+            self.settings.settings["ai_auto_send"] = self.ai_auto_send_var.get()
+        if hasattr(self, 'ai_model_combo'):
+            self.settings.settings["ai_model"] = self.ai_model_combo.get()
+        
+        # AI Provider settings
+        if hasattr(self, 'ai_provider_var'):
+            self.settings.settings["ai_provider"] = self.ai_provider_var.get()
+        if hasattr(self, 'claude_api_key_var'):
+            self.settings.settings["claude_api_key"] = self.claude_api_key_var.get()
+        if hasattr(self, 'openai_api_key_var'):
+            self.settings.settings["openai_api_key"] = self.openai_api_key_var.get()
+        if hasattr(self, 'openai_model_var'):
+            self.settings.settings["openai_model"] = self.openai_model_var.get()
+        
         # Save to file
         self.settings.save_settings()
         
@@ -1759,6 +2745,213 @@ class SettingsWindow(ctk.CTkToplevel):
         
         self.parent.show_notification("Settings applied successfully!")
         self.destroy()
+    
+    def get_available_ai_models(self):
+        """Get list of available AI models"""
+        from pathlib import Path
+        models_dir = Path.home() / "simple-llm-server" / "models"
+        if not models_dir.exists():
+            return ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf"]
+        
+        models = []
+        for model_file in models_dir.glob("*.gguf"):
+            models.append(model_file.name)
+        
+        return sorted(models) if models else ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf", "phi-2.Q4_K_M.gguf"]
+    
+    def on_ai_settings_change(self):
+        """Handle AI settings changes"""
+        # Update parent's LocalAI instance immediately
+        if hasattr(self.parent, 'local_ai'):
+            self.parent.local_ai.settings.settings["ai_enabled"] = self.ai_enabled_var.get()
+            self.parent.local_ai.settings.settings["ai_auto_send"] = self.ai_auto_send_var.get()
+            self.parent.local_ai.settings.save_settings()
+            # Update AI panel visibility
+            self.parent.update_ai_panel_visibility()
+    
+    def save_api_keys(self):
+        """Save API keys when they change"""
+        if hasattr(self, 'claude_api_key_var'):
+            self.settings.settings["claude_api_key"] = self.claude_api_key_var.get()
+        if hasattr(self, 'openai_api_key_var'):
+            self.settings.settings["openai_api_key"] = self.openai_api_key_var.get()
+        if hasattr(self, 'openai_model_var'):
+            self.settings.settings["openai_model"] = self.openai_model_var.get()
+        self.settings.save_settings()
+        
+        # Update main UI to reflect changes
+        if hasattr(self.parent, 'update_ai_model_label'):
+            self.parent.update_ai_model_label()
+    
+    def on_provider_change(self):
+        """Handle AI provider selection change"""
+        provider = self.ai_provider_var.get()
+        
+        # Save the provider selection immediately
+        self.settings.settings["ai_provider"] = provider
+        self.settings.save_settings()
+        
+        # Update main UI to reflect provider change
+        if hasattr(self.parent, 'update_ai_model_label'):
+            self.parent.update_ai_model_label()
+        
+        # Show/hide frames based on provider selection
+        if provider == "local":
+            # Show local AI components
+            if hasattr(self, 'model_frame'):
+                self.model_frame.pack(fill="x", pady=10)
+            if hasattr(self, 'server_frame'):
+                self.server_frame.pack(fill="x", pady=10)
+            # Hide API components
+            if hasattr(self, 'claude_frame'):
+                self.claude_frame.pack_forget()
+            if hasattr(self, 'openai_frame'):
+                self.openai_frame.pack_forget()
+        
+        elif provider == "claude":
+            # Hide local AI components
+            if hasattr(self, 'model_frame'):
+                self.model_frame.pack_forget()
+            if hasattr(self, 'server_frame'):
+                self.server_frame.pack_forget()
+            # Show Claude API components
+            if hasattr(self, 'claude_frame'):
+                self.claude_frame.pack(fill="x", padx=10, pady=5)
+            # Hide OpenAI components
+            if hasattr(self, 'openai_frame'):
+                self.openai_frame.pack_forget()
+        
+        elif provider == "openai":
+            # Hide local AI components
+            if hasattr(self, 'model_frame'):
+                self.model_frame.pack_forget()
+            if hasattr(self, 'server_frame'):
+                self.server_frame.pack_forget()
+            # Hide Claude API components
+            if hasattr(self, 'claude_frame'):
+                self.claude_frame.pack_forget()
+            # Show OpenAI API components
+            if hasattr(self, 'openai_frame'):
+                self.openai_frame.pack(fill="x", padx=10, pady=5)
+    
+    def start_ai_server(self):
+        """Start the AI server"""
+        try:
+            model_name = self.ai_model_combo.get() if hasattr(self, 'ai_model_combo') else None
+            success = self.parent.local_ai.start_server(model_name)
+            if success:
+                self.parent.show_notification(f"AI server started with {model_name}")
+                self.update_ai_server_status()
+            else:
+                self.parent.show_notification("Failed to start AI server", "error")
+        except Exception as e:
+            self.parent.show_notification(f"Error starting AI server: {str(e)}", "error")
+    
+    def stop_ai_server(self):
+        """Stop the AI server"""
+        try:
+            self.parent.local_ai.stop_server()
+            self.parent.show_notification("AI server stopped")
+            self.update_ai_server_status()
+        except Exception as e:
+            self.parent.show_notification(f"Error stopping AI server: {str(e)}", "error")
+    
+    def download_tinyllama(self):
+        """Download TinyLlama model with progress dialog"""
+        # Create progress dialog
+        progress_dialog = ctk.CTkToplevel(self)
+        progress_dialog.title("Downloading TinyLlama")
+        progress_dialog.geometry("450x150")
+        progress_dialog.transient(self)
+        progress_dialog.grab_set()
+        
+        # Center the dialog
+        progress_dialog.update_idletasks()
+        x = (progress_dialog.winfo_screenwidth() // 2) - (450 // 2)
+        y = (progress_dialog.winfo_screenheight() // 2) - (150 // 2)
+        progress_dialog.geometry(f"450x150+{x}+{y}")
+        
+        # Progress widgets
+        progress_label = ctk.CTkLabel(
+            progress_dialog,
+            text="Downloading TinyLlama model (638 MB)...",
+            font=ctk.CTkFont(size=12)
+        )
+        progress_label.pack(pady=10)
+        
+        progress_bar = ctk.CTkProgressBar(progress_dialog, width=400)
+        progress_bar.pack(pady=10)
+        progress_bar.set(0)
+        
+        status_label = ctk.CTkLabel(
+            progress_dialog,
+            text="Starting download...",
+            font=ctk.CTkFont(size=10)
+        )
+        status_label.pack(pady=5)
+        
+        # Download in background thread
+        import threading
+        download_success = False
+        
+        def download_thread():
+            nonlocal download_success
+            def update_progress(downloaded, total):
+                if total > 0:
+                    percent = (downloaded / total) * 100
+                    mb_downloaded = downloaded / (1024*1024)
+                    mb_total = total / (1024*1024)
+                    
+                    # Update UI in main thread
+                    progress_dialog.after(0, lambda: progress_bar.set(percent / 100))
+                    progress_dialog.after(0, lambda: status_label.configure(
+                        text=f"{mb_downloaded:.1f} MB / {mb_total:.1f} MB ({percent:.0f}%)"
+                    ))
+            
+            download_success = self.parent.local_ai.download_tinyllama(update_progress)
+            
+            # Close dialog and update UI
+            progress_dialog.after(0, lambda: self.on_download_complete(progress_dialog, download_success))
+        
+        thread = threading.Thread(target=download_thread, daemon=True)
+        thread.start()
+    
+    def on_download_complete(self, dialog, success):
+        """Handle download completion"""
+        dialog.destroy()
+        
+        if success:
+            self.parent.show_notification("TinyLlama downloaded successfully!")
+            # Hide download button and refresh model list
+            if hasattr(self, 'download_btn'):
+                self.download_btn.pack_forget()
+            # Refresh available models
+            available_models = self.get_available_ai_models()
+            self.ai_model_combo.configure(values=available_models)
+            self.ai_model_combo.set("tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf")
+        else:
+            self.parent.show_notification("Failed to download TinyLlama", "error")
+    
+    def update_ai_server_status(self):
+        """Update AI server status display"""
+        if hasattr(self, 'server_status_label'):
+            is_running = self.parent.local_ai.is_server_running()
+            current_model = self.parent.local_ai.get_current_model()
+            
+            if is_running and current_model:
+                status_text = f"Server Status: Running ({current_model})"
+                status_color = "green"
+            elif is_running:
+                status_text = "Server Status: Running"
+                status_color = "green"
+            else:
+                status_text = "Server Status: Not Running"
+                status_color = "gray"
+            
+            self.server_status_label.configure(text=status_text, text_color=status_color)
+            
+            # Update main UI model label
+            self.parent.update_ai_model_label()
 
 def main():
     """Main entry point"""
