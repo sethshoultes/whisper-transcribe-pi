@@ -1672,129 +1672,286 @@ class WhisperTranscribePro(ctk.CTk):
         except Exception as e:
             self.show_notification(f"Stats failed: {e}")
     
-    def _load_conversation_history(self, parent_frame):
-        """Load and display conversation history in the memory dialog"""
-        logging.info("Starting to load conversation history for memory dialog")
+    def _load_conversation_history(self, parent_frame, page=1, items_per_page=10):
+        """Load and display conversation history with pagination"""
+        logging.info(f"Loading conversation history page {page}")
         
         if not hasattr(self, 'voice_memory') or not self.voice_memory:
-            logging.error("Voice memory not available in _load_conversation_history")
+            logging.error("Voice memory not available")
             ctk.CTkLabel(
                 parent_frame,
-                text="❌ Voice memory not available",
+                text="Voice memory not available",
                 text_color="red"
             ).pack(anchor="w", padx=10, pady=5)
             return
         
-        logging.info("Voice memory is available, proceeding to load conversations")
+        # Clear existing content
+        for widget in parent_frame.winfo_children():
+            widget.destroy()
         
         try:
-            # Get recent conversations from both memory systems
-            conversations = []
+            # Get ALL conversations first for proper pagination
+            all_conversations = []
             
-            # Try to get from conversation memory (SQLite)
+            # Get from database (SQLite) - most recent first
             try:
-                recent = self.voice_memory.conversation_memory.get_recent(limit=20, session_only=False)
-                logging.info(f"Retrieved {len(recent)} conversations from database")
-                for i, conv in enumerate(recent):
-                    confidence = conv.get('transcription_confidence', 0.0)
-                    if confidence is None:
-                        confidence = 0.0
-                    
-                    # Use correct field names - mapped in get_recent method
-                    conversations.append({
+                recent = self.voice_memory.conversation_memory.get_recent(limit=100, session_only=False)
+                for conv in recent:
+                    confidence = conv.get('transcription_confidence', 0.0) or 0.0
+                    all_conversations.append({
+                        'id': conv.get('id'),
                         'timestamp': conv.get('timestamp'),
-                        'user_input': conv.get('user', ''),  # Note: 'user' not 'user_input'
-                        'assistant_response': conv.get('assistant', ''),  # Note: 'assistant' not 'assistant_response'
+                        'user_input': conv.get('user', ''),
+                        'assistant_response': conv.get('assistant', ''),
                         'confidence': confidence,
                         'source': 'database'
                     })
-                    logging.debug(f"Added database conversation {i+1}: {conv.get('user', '')[:50]}...")
             except Exception as e:
-                logging.error(f"Failed to load from conversation memory: {e}")
-                import traceback
-                traceback.print_exc()
+                logging.error(f"Failed to load from database: {e}")
             
-            # Also check context memory (JSON) - get conversation history directly
-            try:
-                if hasattr(self.voice_memory.context_memory, 'conversation_history'):
-                    context_conversations = self.voice_memory.context_memory.conversation_history
-                    # Filter for voice interactions if available
-                    for conv in context_conversations[-20:]:  # Get last 20
-                        if conv.get('interaction_type') == 'voice' or not conv.get('interaction_type'):
-                            # Parse audio metadata if available
-                            audio_meta = conv.get('audio_metadata', {})
-                            confidence = audio_meta.get('confidence_score', 0.0) if audio_meta else 0.0
-                            
-                            conversations.append({
-                                'timestamp': conv.get('timestamp', ''),
-                                'user_input': conv.get('user', ''),  # Correct field for context memory
-                                'assistant_response': conv.get('assistant', ''),  # Correct field for context memory
-                                'confidence': confidence,
-                                'source': 'context'
-                            })
-                else:
-                    logging.debug("Context memory has no conversation_history attribute")
-            except Exception as e:
-                logging.error(f"Failed to load from context memory: {e}")
-                # Don't print traceback for context memory as it's not critical
+            # Sort by timestamp (newest first)
+            all_conversations.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
             
-            # Also check transcription history if no memory conversations
-            if not conversations and hasattr(self, 'transcription_history'):
-                for i, text in enumerate(self.transcription_history[-10:]):
-                    conversations.append({
-                        'timestamp': f"Recent #{i+1}",
-                        'user_input': text,
-                        'assistant_response': "N/A",
-                        'confidence': 0.0,
-                        'source': 'history'
-                    })
-            
-            if not conversations:
-                logging.warning("No conversations found to display in memory dialog")
+            if not all_conversations:
                 ctk.CTkLabel(
                     parent_frame,
-                    text="[EMPTY] No conversations found yet\nStart recording to build your conversation history!",
+                    text="No conversations found yet\nStart recording to build your conversation history!",
                     text_color="gray",
                     font=ctk.CTkFont(size=11)
                 ).pack(anchor="w", padx=10, pady=20)
                 return
-            else:
-                logging.info(f"Found {len(conversations)} conversations to display")
             
-            # Display each conversation
-            logging.info(f"Displaying {len(conversations[:20])} conversations in memory dialog")
-            for i, conv in enumerate(conversations[:20]):  # Limit to 20 most recent
+            # Calculate pagination
+            total_items = len(all_conversations)
+            total_pages = (total_items + items_per_page - 1) // items_per_page
+            start_idx = (page - 1) * items_per_page
+            end_idx = min(start_idx + items_per_page, total_items)
+            
+            # Add pagination controls at top
+            pagination_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
+            pagination_frame.pack(fill="x", padx=10, pady=5)
+            
+            # Page info
+            ctk.CTkLabel(
+                pagination_frame,
+                text=f"Page {page} of {total_pages} ({total_items} total conversations)",
+                font=ctk.CTkFont(size=12, weight="bold")
+            ).pack(side="left", padx=5)
+            
+            # Navigation buttons
+            nav_frame = ctk.CTkFrame(pagination_frame, fg_color="transparent")
+            nav_frame.pack(side="right", padx=5)
+            
+            if page > 1:
+                ctk.CTkButton(
+                    nav_frame,
+                    text="← Previous",
+                    command=lambda: self._load_conversation_history(parent_frame, page-1, items_per_page),
+                    width=80,
+                    height=28
+                ).pack(side="left", padx=2)
+            
+            if page < total_pages:
+                ctk.CTkButton(
+                    nav_frame,
+                    text="Next →",
+                    command=lambda: self._load_conversation_history(parent_frame, page+1, items_per_page),
+                    width=80,
+                    height=28
+                ).pack(side="left", padx=2)
+            
+            # Clear all button
+            ctk.CTkButton(
+                nav_frame,
+                text="Clear All",
+                command=lambda: self._clear_all_conversations(parent_frame),
+                width=80,
+                height=28,
+                fg_color="red",
+                hover_color="darkred"
+            ).pack(side="left", padx=10)
+            
+            # Display conversations for current page
+            conversations_to_show = all_conversations[start_idx:end_idx]
+            
+            logging.info(f"Displaying {len(conversations_to_show)} conversations on page {page}")
+            
+            for i, conv in enumerate(conversations_to_show):
                 try:
-                    self._create_conversation_widget(parent_frame, conv, i)
-                    logging.debug(f"Created widget for conversation {i+1}")
-                except Exception as widget_error:
-                    logging.error(f"Failed to create widget for conversation {i+1}: {widget_error}")
-                    # Create a simple error widget
-                    ctk.CTkLabel(
-                        parent_frame,
-                        text=f"[ERROR] Error displaying conversation {i+1}",
-                        text_color="red"
-                    ).pack(anchor="w", padx=10, pady=2)
+                    # Add conversation ID for deletion capability
+                    conv['display_index'] = start_idx + i + 1
+                    self._create_conversation_widget_with_delete(parent_frame, conv, i)
+                except Exception as e:
+                    logging.error(f"Failed to create widget: {e}")
             
-            # Add a summary message
-            if conversations:
-                summary_text = f"Found {len(conversations)} conversations"
-                ctk.CTkLabel(
-                    parent_frame,
-                    text=f"[STATS] {summary_text}",
-                    text_color="lightblue",
-                    font=ctk.CTkFont(size=10)
-                ).pack(anchor="w", padx=10, pady=5)
+            # Add page navigation at bottom too if many items
+            if total_pages > 1:
+                bottom_nav = ctk.CTkFrame(parent_frame, fg_color="transparent")
+                bottom_nav.pack(fill="x", padx=10, pady=10)
                 
+                # Quick page jump
+                for p in range(1, min(total_pages + 1, 6)):  # Show first 5 pages
+                    btn_color = "green" if p == page else "gray"
+                    ctk.CTkButton(
+                        bottom_nav,
+                        text=str(p),
+                        command=lambda pg=p: self._load_conversation_history(parent_frame, pg, items_per_page),
+                        width=30,
+                        height=28,
+                        fg_color=btn_color
+                    ).pack(side="left", padx=2)
+                
+                if total_pages > 5:
+                    ctk.CTkLabel(bottom_nav, text="...").pack(side="left", padx=5)
+                    ctk.CTkButton(
+                        bottom_nav,
+                        text=str(total_pages),
+                        command=lambda: self._load_conversation_history(parent_frame, total_pages, items_per_page),
+                        width=40,
+                        height=28
+                    ).pack(side="left", padx=2)
+                    
         except Exception as e:
             logging.error(f"Failed to load conversation history: {e}")
-            import traceback
-            traceback.print_exc()
             ctk.CTkLabel(
                 parent_frame,
-                text=f"[ERROR] Error loading conversations: {str(e)}",
+                text=f"Error loading conversations: {str(e)}",
                 text_color="red"
             ).pack(anchor="w", padx=10, pady=5)
+    
+    def _create_conversation_widget_with_delete(self, parent, conversation, index):
+        """Create a widget for a single conversation with delete button"""
+        # Container frame
+        conv_frame = ctk.CTkFrame(parent)
+        conv_frame.pack(fill="x", padx=5, pady=3)
+        
+        # Parse data
+        conv_id = conversation.get('id')
+        display_idx = conversation.get('display_index', index + 1)
+        timestamp = conversation.get('timestamp', 'Unknown')
+        user_input = conversation.get('user_input', 'N/A')
+        ai_response = conversation.get('assistant_response', 'N/A')
+        confidence = conversation.get('confidence', 0.0)
+        source = conversation.get('source', 'unknown')
+        
+        # Format timestamp
+        try:
+            if isinstance(timestamp, str) and 'T' in timestamp:
+                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                time_str = dt.strftime("%m/%d %H:%M:%S")
+            else:
+                time_str = str(timestamp)
+        except:
+            time_str = str(timestamp)
+        
+        # Header with delete button
+        header_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=5, pady=2)
+        
+        # Header text
+        source_icon = {"database": "[DB]", "context": "[JSON]", "history": "[HIST]"}.get(source, "[?]")
+        header_text = f"{source_icon} #{display_idx} - {time_str}"
+        if confidence > 0:
+            header_text += f" | Conf: {confidence:.1%}"
+        
+        ctk.CTkLabel(
+            header_frame,
+            text=header_text,
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        ).pack(side="left", padx=5)
+        
+        # Delete button
+        if conv_id and source == 'database':
+            ctk.CTkButton(
+                header_frame,
+                text="Delete",
+                command=lambda: self._delete_conversation(conv_id, conv_frame),
+                width=50,
+                height=20,
+                font=ctk.CTkFont(size=10),
+                fg_color="transparent",
+                text_color="red",
+                hover_color=("gray75", "gray25")
+            ).pack(side="right", padx=5)
+        
+        # User input (simplified - just label for performance)
+        if user_input and user_input != 'N/A':
+            user_text = f"User: {user_input[:100]}{'...' if len(user_input) > 100 else ''}"
+            ctk.CTkLabel(
+                conv_frame,
+                text=user_text,
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                justify="left",
+                text_color="lightblue",
+                wraplength=600
+            ).pack(anchor="w", padx=15, pady=2, fill="x")
+        
+        # AI response (simplified)
+        if ai_response and ai_response != 'N/A':
+            ai_text = f"AI: {ai_response[:100]}{'...' if len(ai_response) > 100 else ''}"
+            ctk.CTkLabel(
+                conv_frame,
+                text=ai_text,
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                justify="left",
+                text_color="lightgreen",
+                wraplength=600
+            ).pack(anchor="w", padx=15, pady=2, fill="x")
+    
+    def _delete_conversation(self, conv_id, widget_frame):
+        """Delete a single conversation"""
+        try:
+            if hasattr(self.voice_memory.conversation_memory, 'delete_conversation'):
+                self.voice_memory.conversation_memory.delete_conversation(conv_id)
+            else:
+                # Direct database deletion if method doesn't exist
+                import sqlite3
+                conn = sqlite3.connect(self.voice_memory.conversation_memory.db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM conversations WHERE id = ?", (conv_id,))
+                conn.commit()
+                conn.close()
+            
+            # Remove widget
+            widget_frame.destroy()
+            self.show_notification("Conversation deleted")
+            logging.info(f"Deleted conversation {conv_id}")
+            
+        except Exception as e:
+            logging.error(f"Failed to delete conversation: {e}")
+            self.show_notification(f"Delete failed: {e}")
+    
+    def _clear_all_conversations(self, parent_frame):
+        """Clear all conversations with confirmation"""
+        # Create confirmation dialog
+        if messagebox.askyesno("Clear All Conversations", 
+                               "Are you sure you want to delete ALL conversations?\n\nThis cannot be undone!"):
+            try:
+                # Clear database
+                import sqlite3
+                conn = sqlite3.connect(self.voice_memory.conversation_memory.db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM conversations")
+                conn.commit()
+                conn.close()
+                
+                # Clear JSON memory
+                if hasattr(self.voice_memory.context_memory, 'conversation_history'):
+                    self.voice_memory.context_memory.conversation_history.clear()
+                    self.voice_memory.context_memory.save_memory()
+                
+                self.show_notification("All conversations cleared")
+                logging.info("Cleared all conversations")
+                
+                # Reload the view
+                self._load_conversation_history(parent_frame)
+                
+            except Exception as e:
+                logging.error(f"Failed to clear conversations: {e}")
+                self.show_notification(f"Clear failed: {e}")
     
     def _create_conversation_widget(self, parent, conversation, index):
         """Create a widget for a single conversation entry"""

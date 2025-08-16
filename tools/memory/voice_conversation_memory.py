@@ -738,6 +738,46 @@ class VoiceConversationMemory:
         
         return results
     
+    def delete_conversation(self, conversation_id: int) -> bool:
+        """
+        Delete a specific conversation by ID
+        
+        Args:
+            conversation_id: The ID of the conversation to delete
+            
+        Returns:
+            True if deleted successfully, False otherwise
+        """
+        try:
+            cursor = self.conn.cursor()
+            
+            # Delete from main table (cascades to related tables)
+            cursor.execute("""
+                DELETE FROM voice_conversations 
+                WHERE id = ?
+            """, (conversation_id,))
+            
+            # Delete from FTS table if exists
+            try:
+                cursor.execute("""
+                    DELETE FROM voice_conversations_fts 
+                    WHERE rowid = ?
+                """, (conversation_id,))
+            except:
+                pass  # FTS table might not exist
+            
+            self.conn.commit()
+            
+            # Clear from cache if present
+            self.cache = [c for c in self.cache if c.get('id') != conversation_id]
+            
+            logging.info(f"Deleted conversation ID: {conversation_id}")
+            return True
+            
+        except Exception as e:
+            logging.error(f"Failed to delete conversation {conversation_id}: {e}")
+            return False
+    
     def get_context_window(self, size: int = 5, include_metadata: bool = False) -> str:
         """
         Get formatted context window for LLM
