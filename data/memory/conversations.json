@@ -1,0 +1,143 @@
+[
+  {
+    "timestamp": "2025-08-16T09:16:27.440752",
+    "user": "What do you see in the room?",
+    "assistant": "I can see a person sitting at a desk with a laptop",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "confidence_score": 0.87,
+      "processing_time_seconds": 2.3,
+      "audio_duration_seconds": 4.5
+    }
+  },
+  {
+    "timestamp": "2025-08-16T09:17:16.402519",
+    "user": "Hey assistant, what's the weather like today?",
+    "assistant": "Today's weather is sunny with a high of 75\u00b0F",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "confidence_score": 0.89,
+      "processing_time_seconds": 1.8,
+      "audio_duration_seconds": 3.2
+    }
+  },
+  {
+    "timestamp": "2025-08-16T09:31:56.955539",
+    "user": "What time is it?",
+    "assistant": "The current time is 3:45 PM.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/test_audio.wav",
+      "confidence_score": 0.87,
+      "audio_duration": 2.5,
+      "processing_time": 1.2,
+      "wake_word_detected": true,
+      "wake_word_confidence": 0.91
+    }
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.018223",
+    "user": "What's the weather like today?",
+    "assistant": "The current weather is 72\u00b0F and sunny with light winds.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/audio_1755358383.wav",
+      "confidence_score": 0.92,
+      "audio_duration": 2.4,
+      "processing_time": 1.5,
+      "wake_word_detected": true,
+      "wake_word_confidence": 0.87,
+      "language": "en-US",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 2.4,
+          "text": "What's the weather like today?"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.084084",
+    "user": "What time is it?",
+    "assistant": "The current time is 3:45 PM.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/audio_1755358383.wav",
+      "confidence_score": 0.89,
+      "audio_duration": 1.28,
+      "processing_time": 1.3599999999999999,
+      "wake_word_detected": true,
+      "wake_word_confidence": 0.87,
+      "language": "en-US",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 1.28,
+          "text": "What time is it?"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.166811",
+    "user": "Turn on the lights in the living room",
+    "assistant": "I'll turn on the living room lights for you.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/audio_1755358383.wav",
+      "confidence_score": 0.85,
+      "audio_duration": 2.96,
+      "processing_time": 1.5699999999999998,
+      "wake_word_detected": true,
+      "wake_word_confidence": 0.87,
+      "language": "en-US",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 2.96,
+          "text": "Turn on the lights in the living room"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.270591",
+    "user": "Tell me about artificial intelligence",
+    "assistant": "Artificial intelligence is a branch of computer science that aims to create intelligent machines...",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/audio_1755358383.wav",
+      "confidence_score": 0.94,
+      "audio_duration": 2.96,
+      "processing_time": 1.5699999999999998,
+      "wake_word_detected": false,
+      "wake_word_confidence": null,
+      "language": "en-US",
+      "segments": [
+        {
+          "start": 0.0,
+          "end": 2.96,
+          "text": "Tell me about artificial intelligence"
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T10:34:39.135687",
+    "user": "Test command",
+    "assistant": "Test response",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "confidence": 0.95
+    }
+  }
+]

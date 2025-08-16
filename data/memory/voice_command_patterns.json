@@ -1,0 +1,95 @@
+{
+  "question_7_words": {
+    "intent": "question",
+    "average_word_count": 7,
+    "examples": [
+      "What do you see in the room",
+      "Hey assistant, what's the weather like today?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.87,
+      0.89
+    ],
+    "first_seen": "2025-08-16T09:16:27.441387",
+    "last_seen": "2025-08-16T09:17:16.401100"
+  },
+  "request_4_words": {
+    "intent": "request",
+    "average_word_count": 4,
+    "examples": [
+      "Show me the weather"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.91
+    ],
+    "first_seen": "2025-08-16T09:16:27.441567",
+    "last_seen": "2025-08-16T09:16:27.441567"
+  },
+  "question_4_words": {
+    "intent": "question",
+    "average_word_count": 4,
+    "examples": [
+      "What time is it?",
+      "What time is it?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.87,
+      0.89
+    ],
+    "first_seen": "2025-08-16T09:31:57.007673",
+    "last_seen": "2025-08-16T09:33:03.150744"
+  },
+  "question_5_words": {
+    "intent": "question",
+    "average_word_count": 5,
+    "examples": [
+      "What's the weather like today?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.92
+    ],
+    "first_seen": "2025-08-16T09:33:03.070457",
+    "last_seen": "2025-08-16T09:33:03.070457"
+  },
+  "command_8_words": {
+    "intent": "command",
+    "average_word_count": 8,
+    "examples": [
+      "Turn on the lights in the living room"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.85
+    ],
+    "first_seen": "2025-08-16T09:33:03.236616",
+    "last_seen": "2025-08-16T09:33:03.236616"
+  },
+  "request_5_words": {
+    "intent": "request",
+    "average_word_count": 5,
+    "examples": [
+      "Tell me about artificial intelligence"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.94
+    ],
+    "first_seen": "2025-08-16T09:33:03.312386",
+    "last_seen": "2025-08-16T09:33:03.312386"
+  },
+  "general_2_words": {
+    "intent": "general",
+    "average_word_count": 2,
+    "examples": [
+      "Test command"
+    ],
+    "frequency": 1,
+    "confidence_scores": [],
+    "first_seen": "2025-08-16T10:34:39.164849",
+    "last_seen": "2025-08-16T10:34:39.164849"
+  }
+}
