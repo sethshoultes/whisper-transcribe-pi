@@ -373,5 +373,31 @@
     ],
     "first_seen": "2025-08-16T13:05:42.344372",
     "last_seen": "2025-08-16T13:05:42.344372"
+  },
+  "general_15_words": {
+    "intent": "general",
+    "average_word_count": 15,
+    "examples": [
+      "The export data and view stats are not working in the voice memory management panel."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5842286662051552
+    ],
+    "first_seen": "2025-08-16T13:22:08.808338",
+    "last_seen": "2025-08-16T13:22:08.808338"
+  },
+  "transcription_request_15_words": {
+    "intent": "transcription_request",
+    "average_word_count": 15,
+    "examples": [
+      "The export data and view stats are not working in the voice memory management panel."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5842286662051552
+    ],
+    "first_seen": "2025-08-16T13:22:10.886213",
+    "last_seen": "2025-08-16T13:22:10.886213"
   }
 }

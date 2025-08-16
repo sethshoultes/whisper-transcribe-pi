@@ -1635,18 +1635,45 @@ class WhisperTranscribePro(ctk.CTk):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = os.path.join(export_dir, f"voice_memory_export_{timestamp}.json")
             
-            # Export session data
-            export_data = self.voice_memory.export_session_data(
-                format="json",
-                include_analytics=True
-            )
+            # Build export data manually
+            export_data = {
+                "exported_at": datetime.now().isoformat(),
+                "conversations": [],
+                "statistics": {}
+            }
             
+            # Get conversations from database
+            if hasattr(self.voice_memory, 'conversation_memory'):
+                try:
+                    recent = self.voice_memory.conversation_memory.get_recent(limit=100, session_only=False)
+                    export_data["conversations"] = recent
+                except Exception as conv_error:
+                    logging.error(f"Failed to export conversations: {conv_error}")
+            
+            # Get conversations from context memory
+            if hasattr(self.voice_memory, 'context_memory'):
+                try:
+                    context_data = self.voice_memory.context_memory.get_memory_export()
+                    export_data["context_memory"] = context_data
+                except Exception as ctx_error:
+                    logging.error(f"Failed to export context: {ctx_error}")
+            
+            # Add analytics if available
+            try:
+                analytics = self.voice_memory.get_comprehensive_analytics(days=7)
+                export_data["analytics"] = analytics
+            except:
+                pass
+            
+            # Save the export
             with open(filename, 'w') as f:
                 json.dump(export_data, f, indent=2, default=str)
             
             self.show_notification(f"Memory exported to {os.path.basename(filename)}")
+            logging.info(f"Exported memory to {filename}")
             
         except Exception as e:
+            logging.error(f"Export failed: {e}")
             self.show_notification(f"Export failed: {e}")
     
     def _quick_show_memory_stats(self):
@@ -1656,20 +1683,106 @@ class WhisperTranscribePro(ctk.CTk):
             return
         
         try:
+            # Get comprehensive analytics
             analytics = self.voice_memory.get_comprehensive_analytics(days=7)
             
-            # Format basic stats for notification
-            system_perf = analytics.get("system_performance", {})
-            total = system_perf.get('total_interactions', 0)
-            successful = system_perf.get('successful_interactions', 0)
+            # Extract key metrics
+            voice_summary = analytics.get("voice_interaction_summary", {})
+            total_conversations = voice_summary.get('total_conversations', 0)
+            avg_confidence = voice_summary.get('average_confidence', 0)
             
-            stats_msg = f"Memory Stats: {total} interactions, {successful} successful"
-            self.show_notification(stats_msg)
+            conv_patterns = analytics.get("conversation_patterns", {})
+            voice_rate = conv_patterns.get('voice_interaction_rate', 0)
             
-            # Also log detailed stats
-            logging.info(f"Voice Memory Analytics: {analytics}")
+            # Create a stats window instead of just notification
+            stats_window = ctk.CTkToplevel(self)
+            stats_window.title("Voice Memory Statistics")
+            stats_window.geometry("500x400")
+            stats_window.transient(self)
+            
+            # Center the window
+            stats_window.update_idletasks()
+            x = (stats_window.winfo_screenwidth() // 2) - 250
+            y = (stats_window.winfo_screenheight() // 2) - 200
+            stats_window.geometry(f"500x400+{x}+{y}")
+            
+            # Title
+            ctk.CTkLabel(
+                stats_window,
+                text="Voice Memory Statistics",
+                font=ctk.CTkFont(size=16, weight="bold")
+            ).pack(pady=10)
+            
+            # Create scrollable frame for stats
+            stats_frame = ctk.CTkScrollableFrame(stats_window, width=460, height=300)
+            stats_frame.pack(padx=20, pady=10, fill="both", expand=True)
+            
+            # Display stats sections
+            sections = [
+                ("Overview", [
+                    ("Total Conversations", total_conversations),
+                    ("Average Confidence", f"{avg_confidence:.1%}"),
+                    ("Voice Interaction Rate", f"{voice_rate:.1%}")
+                ]),
+                ("Quality Metrics", [
+                    ("Low Confidence Rate", f"{voice_summary.get('low_confidence_rate', 0):.1%}"),
+                    ("Wake Word Rate", f"{voice_summary.get('wake_word_rate', 0):.1%}"),
+                    ("Avg Audio Duration", f"{voice_summary.get('average_audio_duration', 0):.1f}s")
+                ]),
+                ("Recent Activity", [
+                    ("Last Hour", conv_patterns.get('conversation_frequency', {}).get('last_hour', 0)),
+                    ("Last Day", conv_patterns.get('conversation_frequency', {}).get('last_day', 0)),
+                    ("Last Week", conv_patterns.get('conversation_frequency', {}).get('last_week', 0))
+                ])
+            ]
+            
+            for section_title, metrics in sections:
+                # Section header
+                section_frame = ctk.CTkFrame(stats_frame)
+                section_frame.pack(fill="x", padx=10, pady=5)
+                
+                ctk.CTkLabel(
+                    section_frame,
+                    text=section_title,
+                    font=ctk.CTkFont(size=14, weight="bold")
+                ).pack(anchor="w", padx=10, pady=5)
+                
+                # Metrics
+                for label, value in metrics:
+                    metric_frame = ctk.CTkFrame(section_frame, fg_color="transparent")
+                    metric_frame.pack(fill="x", padx=20, pady=2)
+                    
+                    ctk.CTkLabel(
+                        metric_frame,
+                        text=f"{label}:",
+                        font=ctk.CTkFont(size=12)
+                    ).pack(side="left", padx=5)
+                    
+                    ctk.CTkLabel(
+                        metric_frame,
+                        text=str(value),
+                        font=ctk.CTkFont(size=12, weight="bold"),
+                        text_color="lightblue"
+                    ).pack(side="left", padx=5)
+            
+            # Close button
+            ctk.CTkButton(
+                stats_window,
+                text="Close",
+                command=stats_window.destroy,
+                width=100
+            ).pack(pady=10)
+            
+            # Also show brief notification
+            self.show_notification(f"Stats: {total_conversations} conversations, {avg_confidence:.0%} avg confidence")
+            
+            # Log detailed stats
+            logging.info(f"Voice Memory Analytics displayed: {total_conversations} conversations")
             
         except Exception as e:
+            logging.error(f"Stats failed: {e}")
+            import traceback
+            traceback.print_exc()
             self.show_notification(f"Stats failed: {e}")
     
     def _load_conversation_history(self, parent_frame, page=1, items_per_page=10):

@@ -1,75 +1,5 @@
 [
   {
-    "timestamp": "2025-08-16T12:12:36.071521",
-    "user": "testing testing hello lo",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmplddy4naq.wav",
-      "confidence_score": 0.20306015014648438,
-      "audio_duration": 2.0665625,
-      "processing_time": 1755367956.0714946,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.0,
-          "text": " testing testing hello lo",
-          "tokens": [
-            50364,
-            4997,
-            4997,
-            7751,
-            450,
-            50464
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7969398498535156,
-          "compression_ratio": 0.9230769230769231,
-          "no_speech_prob": 0.08420349657535553
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T12:12:36.560537",
-    "user": "testing testing hello lo",
-    "assistant": "Hello, world!",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmplddy4naq.wav",
-      "confidence_score": 0.20306015014648438,
-      "audio_duration": 2.0665625,
-      "processing_time": 1755367956.0714946,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.0,
-          "text": " testing testing hello lo",
-          "tokens": [
-            50364,
-            4997,
-            4997,
-            7751,
-            450,
-            50464
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.7969398498535156,
-          "compression_ratio": 0.9230769230769231,
-          "no_speech_prob": 0.08420349657535553
-        }
-      ]
-    }
-  },
-  {
     "timestamp": "2025-08-16T12:16:39.452973",
     "user": "Testing testing 123",
     "assistant": "",
@@ -661,6 +591,100 @@
           "avg_logprob": -0.24639775032220884,
           "compression_ratio": 1.4262295081967213,
           "no_speech_prob": 0.018573420122265816
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T13:22:08.775392",
+    "user": "The export data and view stats are not working in the voice memory management panel.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpaefvyq34.wav",
+      "confidence_score": 0.5842286662051552,
+      "audio_duration": 7.4651875,
+      "processing_time": 1755372128.7753687,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 7.0,
+          "text": " The export data and view stats are not working in the voice memory management panel.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            293,
+            1910,
+            18152,
+            366,
+            406,
+            1364,
+            294,
+            264,
+            3177,
+            4675,
+            4592,
+            4831,
+            13,
+            50714
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.41577133379484477,
+          "compression_ratio": 1.0909090909090908,
+          "no_speech_prob": 0.02432720921933651
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T13:22:10.852810",
+    "user": "The export data and view stats are not working in the voice memory management panel.",
+    "assistant": "The export data and view stats are not working in the voice memory management panel because the panel is not designed to display these features.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpaefvyq34.wav",
+      "confidence_score": 0.5842286662051552,
+      "audio_duration": 7.4651875,
+      "processing_time": 1755372128.7753687,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 7.0,
+          "text": " The export data and view stats are not working in the voice memory management panel.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            293,
+            1910,
+            18152,
+            366,
+            406,
+            1364,
+            294,
+            264,
+            3177,
+            4675,
+            4592,
+            4831,
+            13,
+            50714
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.41577133379484477,
+          "compression_ratio": 1.0909090909090908,
+          "no_speech_prob": 0.02432720921933651
         }
       ]
     }
