@@ -1,0 +1,32 @@
+[
+  {
+    "session_id": "voice_session_1755357387",
+    "session_type": "demo",
+    "start_time": "2025-08-16T09:16:27.442487",
+    "end_time": "2025-08-16T09:16:28.442573",
+    "total_interactions": 0,
+    "total_audio_duration": 0.0,
+    "wake_word_detections": 0,
+    "successful_transcriptions": 0,
+    "failed_transcriptions": 0,
+    "average_confidence": 0.0,
+    "commands_processed": [],
+    "context_objects_mentioned": [],
+    "duration_seconds": 1.000086
+  },
+  {
+    "session_id": "voice_session_1755357436",
+    "session_type": "user_interaction",
+    "start_time": "2025-08-16T09:17:16.402502",
+    "end_time": "2025-08-16T09:17:16.402528",
+    "total_interactions": 0,
+    "total_audio_duration": 0.0,
+    "wake_word_detections": 0,
+    "successful_transcriptions": 0,
+    "failed_transcriptions": 0,
+    "average_confidence": 0.0,
+    "commands_processed": [],
+    "context_objects_mentioned": [],
+    "duration_seconds": 2.6e-05
+  }
+]

@@ -1,0 +1,463 @@
+{
+  "question_7_words": {
+    "intent": "question",
+    "average_word_count": 7,
+    "examples": [
+      "What do you see in the room",
+      "Hey assistant, what's the weather like today?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.87,
+      0.89
+    ],
+    "first_seen": "2025-08-16T09:16:27.441387",
+    "last_seen": "2025-08-16T09:17:16.401100"
+  },
+  "request_4_words": {
+    "intent": "request",
+    "average_word_count": 4,
+    "examples": [
+      "Show me the weather"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.91
+    ],
+    "first_seen": "2025-08-16T09:16:27.441567",
+    "last_seen": "2025-08-16T09:16:27.441567"
+  },
+  "question_4_words": {
+    "intent": "question",
+    "average_word_count": 4,
+    "examples": [
+      "What time is it?",
+      "What time is it?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.87,
+      0.89
+    ],
+    "first_seen": "2025-08-16T09:31:57.007673",
+    "last_seen": "2025-08-16T09:33:03.150744"
+  },
+  "question_5_words": {
+    "intent": "question",
+    "average_word_count": 5,
+    "examples": [
+      "What's the weather like today?",
+      "Just interesting, do you see?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.92,
+      0.1868914604187012
+    ],
+    "first_seen": "2025-08-16T09:33:03.070457",
+    "last_seen": "2025-08-16T11:48:46.418001"
+  },
+  "command_8_words": {
+    "intent": "command",
+    "average_word_count": 8,
+    "examples": [
+      "Turn on the lights in the living room"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.85
+    ],
+    "first_seen": "2025-08-16T09:33:03.236616",
+    "last_seen": "2025-08-16T09:33:03.236616"
+  },
+  "request_5_words": {
+    "intent": "request",
+    "average_word_count": 5,
+    "examples": [
+      "Tell me about artificial intelligence"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.94
+    ],
+    "first_seen": "2025-08-16T09:33:03.312386",
+    "last_seen": "2025-08-16T09:33:03.312386"
+  },
+  "general_2_words": {
+    "intent": "general",
+    "average_word_count": 2,
+    "examples": [
+      "Test command"
+    ],
+    "frequency": 1,
+    "confidence_scores": [],
+    "first_seen": "2025-08-16T10:34:39.164849",
+    "last_seen": "2025-08-16T10:34:39.164849"
+  },
+  "transcription_request_10_words": {
+    "intent": "transcription_request",
+    "average_word_count": 10,
+    "examples": [
+      "This is the memory working. Let's do a test one.",
+      "testing testing testing 1 2 3 this is a test"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.5210007727146149,
+      0.2438037578876202
+    ],
+    "first_seen": "2025-08-16T10:51:01.534434",
+    "last_seen": "2025-08-16T11:48:35.948908"
+  },
+  "transcription_request_4_words": {
+    "intent": "transcription_request",
+    "average_word_count": 4,
+    "examples": [
+      "Remember he tests too.",
+      "Testing, have a testing.",
+      "Hello, hello test esteem",
+      "testing testing hello lo"
+    ],
+    "frequency": 4,
+    "confidence_scores": [
+      0.2527211308479309,
+      0.3408569229973687,
+      0.2957340876261393,
+      0.20306015014648438
+    ],
+    "first_seen": "2025-08-16T10:51:38.579484",
+    "last_seen": "2025-08-16T12:12:36.598638"
+  },
+  "general_3_words": {
+    "intent": "general",
+    "average_word_count": 3,
+    "examples": [
+      "Test transcription only",
+      "Jay correlate Okay...",
+      "Testing testing 123"
+    ],
+    "frequency": 3,
+    "confidence_scores": [
+      0.95,
+      0.0,
+      0.2685842514038086
+    ],
+    "first_seen": "2025-08-16T10:58:45.236331",
+    "last_seen": "2025-08-16T12:16:39.484519"
+  },
+  "general_11_words": {
+    "intent": "general",
+    "average_word_count": 11,
+    "examples": [
+      "Test one, test one, test one, test one, test two, memory."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.26079921722412114
+    ],
+    "first_seen": "2025-08-16T11:00:22.148326",
+    "last_seen": "2025-08-16T11:00:22.148326"
+  },
+  "transcription_request_11_words": {
+    "intent": "transcription_request",
+    "average_word_count": 11,
+    "examples": [
+      "Test one, test one, test one, test one, test two, memory.",
+      "What are all the temporary files for the dot temp files?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.26079921722412114,
+      0.512863286336263
+    ],
+    "first_seen": "2025-08-16T11:00:22.713002",
+    "last_seen": "2025-08-16T14:59:42.027653"
+  },
+  "transcription_request_3_words": {
+    "intent": "transcription_request",
+    "average_word_count": 3,
+    "examples": [
+      "Jay correlate Okay...",
+      "Testing testing 123"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.0,
+      0.2685842514038086
+    ],
+    "first_seen": "2025-08-16T11:00:43.784316",
+    "last_seen": "2025-08-16T12:16:40.164435"
+  },
+  "question_9_words": {
+    "intent": "question",
+    "average_word_count": 9,
+    "examples": [
+      "Is there anyone there? Can you talk to me?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5391049725668771
+    ],
+    "first_seen": "2025-08-16T11:00:55.341246",
+    "last_seen": "2025-08-16T11:00:55.341246"
+  },
+  "transcription_request_9_words": {
+    "intent": "transcription_request",
+    "average_word_count": 9,
+    "examples": [
+      "Is there anyone there? Can you talk to me?",
+      "Hello testing 1, 2, 3 testing 1, 2, 3",
+      "The export data doesn't seem to be doing anything."
+    ],
+    "frequency": 3,
+    "confidence_scores": [
+      0.5391049725668771,
+      0.5694580078125,
+      0.6333131790161133
+    ],
+    "first_seen": "2025-08-16T11:00:56.158456",
+    "last_seen": "2025-08-16T14:11:59.982158"
+  },
+  "general_4_words": {
+    "intent": "general",
+    "average_word_count": 4,
+    "examples": [
+      "Testing, have a testing.",
+      "Hello, hello test esteem",
+      "testing testing hello lo"
+    ],
+    "frequency": 3,
+    "confidence_scores": [
+      0.3408569229973687,
+      0.2957340876261393,
+      0.20306015014648438
+    ],
+    "first_seen": "2025-08-16T11:02:30.194202",
+    "last_seen": "2025-08-16T12:12:36.112775"
+  },
+  "general_6_words": {
+    "intent": "general",
+    "average_word_count": 6,
+    "examples": [
+      "Testing testing, this is a test."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.4171995249661532
+    ],
+    "first_seen": "2025-08-16T11:37:39.349500",
+    "last_seen": "2025-08-16T11:37:39.349500"
+  },
+  "transcription_request_6_words": {
+    "intent": "transcription_request",
+    "average_word_count": 6,
+    "examples": [
+      "Testing testing, this is a test."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.4171995249661532
+    ],
+    "first_seen": "2025-08-16T11:37:40.148305",
+    "last_seen": "2025-08-16T11:37:40.148305"
+  },
+  "question_35_words": {
+    "intent": "question",
+    "average_word_count": 19,
+    "examples": [
+      "So the memory, the modal window and it loads, there's nothing in the window, it's a blank page. Also"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5575282152961283
+    ],
+    "first_seen": "2025-08-16T11:38:13.425519",
+    "last_seen": "2025-08-16T11:38:13.425519"
+  },
+  "transcription_request_35_words": {
+    "intent": "transcription_request",
+    "average_word_count": 19,
+    "examples": [
+      "So the memory, the modal window and it loads, there's nothing in the window, it's a blank page. Also"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5575282152961283
+    ],
+    "first_seen": "2025-08-16T11:38:16.320390",
+    "last_seen": "2025-08-16T11:38:16.320390"
+  },
+  "general_10_words": {
+    "intent": "general",
+    "average_word_count": 10,
+    "examples": [
+      "testing testing testing 1 2 3 this is a test"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.2438037578876202
+    ],
+    "first_seen": "2025-08-16T11:48:35.478643",
+    "last_seen": "2025-08-16T11:48:35.478643"
+  },
+  "transcription_request_5_words": {
+    "intent": "transcription_request",
+    "average_word_count": 5,
+    "examples": [
+      "Just interesting, do you see?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.1868914604187012
+    ],
+    "first_seen": "2025-08-16T11:48:46.874182",
+    "last_seen": "2025-08-16T11:48:46.874182"
+  },
+  "question_38_words": {
+    "intent": "question",
+    "average_word_count": 19,
+    "examples": [
+      "What happened to the memory page? No changes you made made look like shit. Everything runs off the p"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5814417430332729
+    ],
+    "first_seen": "2025-08-16T12:38:13.106160",
+    "last_seen": "2025-08-16T12:38:13.106160"
+  },
+  "transcription_request_38_words": {
+    "intent": "transcription_request",
+    "average_word_count": 19,
+    "examples": [
+      "What happened to the memory page? No changes you made made look like shit. Everything runs off the p"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5814417430332729
+    ],
+    "first_seen": "2025-08-16T12:38:17.310942",
+    "last_seen": "2025-08-16T12:38:17.310942"
+  },
+  "general_9_words": {
+    "intent": "general",
+    "average_word_count": 9,
+    "examples": [
+      "Hello testing 1, 2, 3 testing 1, 2, 3",
+      "The export data doesn't seem to be doing anything."
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.5694580078125,
+      0.6333131790161133
+    ],
+    "first_seen": "2025-08-16T13:04:59.696683",
+    "last_seen": "2025-08-16T14:11:58.510698"
+  },
+  "question_32_words": {
+    "intent": "question",
+    "average_word_count": 19,
+    "examples": [
+      "The memory is taking a long time, especially when there's a lot of messages in there. There's no way"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.7536022496777912
+    ],
+    "first_seen": "2025-08-16T13:05:36.286889",
+    "last_seen": "2025-08-16T13:05:36.286889"
+  },
+  "transcription_request_32_words": {
+    "intent": "transcription_request",
+    "average_word_count": 19,
+    "examples": [
+      "The memory is taking a long time, especially when there's a lot of messages in there. There's no way"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.7536022496777912
+    ],
+    "first_seen": "2025-08-16T13:05:42.344372",
+    "last_seen": "2025-08-16T13:05:42.344372"
+  },
+  "general_15_words": {
+    "intent": "general",
+    "average_word_count": 15,
+    "examples": [
+      "The export data and view stats are not working in the voice memory management panel."
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5842286662051552
+    ],
+    "first_seen": "2025-08-16T13:22:08.808338",
+    "last_seen": "2025-08-16T13:22:08.808338"
+  },
+  "transcription_request_15_words": {
+    "intent": "transcription_request",
+    "average_word_count": 15,
+    "examples": [
+      "The export data and view stats are not working in the voice memory management panel.",
+      "What is the enable pattern learning analysis Do and working feature or just a mockup?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.5842286662051552,
+      0.36173577742143115
+    ],
+    "first_seen": "2025-08-16T13:22:10.886213",
+    "last_seen": "2025-08-16T15:38:35.351743"
+  },
+  "general_30_words": {
+    "intent": "general",
+    "average_word_count": 20,
+    "examples": [
+      "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning do"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5177455155745796
+    ],
+    "first_seen": "2025-08-16T14:54:59.923792",
+    "last_seen": "2025-08-16T14:54:59.923792"
+  },
+  "transcription_request_30_words": {
+    "intent": "transcription_request",
+    "average_word_count": 20,
+    "examples": [
+      "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning do"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5177455155745796
+    ],
+    "first_seen": "2025-08-16T14:55:02.176985",
+    "last_seen": "2025-08-16T14:55:02.176985"
+  },
+  "question_11_words": {
+    "intent": "question",
+    "average_word_count": 11,
+    "examples": [
+      "What are all the temporary files for the dot temp files?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.512863286336263
+    ],
+    "first_seen": "2025-08-16T14:59:41.033741",
+    "last_seen": "2025-08-16T14:59:41.033741"
+  },
+  "question_15_words": {
+    "intent": "question",
+    "average_word_count": 15,
+    "examples": [
+      "What is the enable pattern learning analysis Do and working feature or just a mockup?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.36173577742143115
+    ],
+    "first_seen": "2025-08-16T15:38:32.105590",
+    "last_seen": "2025-08-16T15:38:32.105590"
+  }
+}

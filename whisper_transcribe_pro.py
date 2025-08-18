@@ -27,6 +27,15 @@ from PIL import Image, ImageDraw
 from scipy import signal
 from scipy.signal import butter, lfilter
 
+# Voice Memory Manager Integration
+try:
+    from tools.memory.voice_memory_manager import VoiceMemoryManager, create_voice_memory_manager
+    VOICE_MEMORY_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Voice Memory Manager not available: {e}")
+    VOICE_MEMORY_AVAILABLE = False
+    VoiceMemoryManager = None
+
 # Configure appearance
 ctk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -673,7 +682,16 @@ class Settings:
             "ai_provider": "local",
             "claude_api_key": "",
             "openai_api_key": "",
-            "openai_model": "gpt-3.5-turbo"
+            "openai_model": "gpt-3.5-turbo",
+            # Voice Memory Settings
+            "voice_memory_enabled": True,
+            "voice_memory_context_limit": 10,
+            "voice_memory_audio_metadata": True,
+            "voice_memory_pattern_learning": True,
+            "voice_memory_wake_word_tracking": True,
+            "voice_memory_db_path": "data/voice_conversations.db",
+            "voice_memory_auto_save": True,
+            "voice_memory_compression": True
         }
         
         if self.config_path.exists():
@@ -706,6 +724,10 @@ class WhisperTranscribePro(ctk.CTk):
         self.visualizer = AudioVisualizer()
         self.local_ai = LocalAI(self.settings)
         
+        # Initialize Voice Memory Manager
+        self.voice_memory = None
+        self._init_voice_memory()
+        
         # Audio/transcription state
         self.model = None
         self.recording = False
@@ -733,6 +755,65 @@ class WhisperTranscribePro(ctk.CTk):
         
         # Start periodic AI status check
         self.check_ai_status()
+    
+    def _init_voice_memory(self):
+        """Initialize Voice Memory Manager with error handling"""
+        if not VOICE_MEMORY_AVAILABLE or not self.settings.settings.get("voice_memory_enabled", True):
+            logging.info("Voice Memory Manager disabled or not available")
+            return
+        
+        try:
+            # Create memory configuration from settings
+            memory_config = {
+                'enable_context_memory': True,
+                'enable_audio_metadata': self.settings.settings.get("voice_memory_audio_metadata", True),
+                'conversation_memory_limit': self.settings.settings.get("voice_memory_context_limit", 100),
+                'conversation_db_path': self.settings.settings.get("voice_memory_db_path", "data/voice_conversations.db"),
+                'enable_pattern_learning': self.settings.settings.get("voice_memory_pattern_learning", True),
+                'enable_memory_compression': self.settings.settings.get("voice_memory_compression", True),
+                'auto_save_interval': 300 if self.settings.settings.get("voice_memory_auto_save", True) else 0,
+                'wake_word_learning_enabled': self.settings.settings.get("voice_memory_wake_word_tracking", True)
+            }
+            
+            # Ensure data directory exists
+            db_path = Path(memory_config['conversation_db_path'])
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Initialize Voice Memory Manager
+            self.voice_memory = create_voice_memory_manager(memory_config)
+            logging.info("Voice Memory Manager initialized successfully")
+            
+        except Exception as e:
+            logging.error(f"Failed to initialize Voice Memory Manager: {e}")
+            self.voice_memory = None
+    
+    def cleanup_voice_memory(self):
+        """Clean up voice memory resources on application close"""
+        if hasattr(self, 'voice_memory') and self.voice_memory:
+            try:
+                logging.info("Cleaning up Voice Memory Manager...")
+                self.voice_memory.close()
+                self.voice_memory = None
+                logging.info("Voice Memory Manager cleanup completed")
+            except Exception as e:
+                logging.error(f"Error during voice memory cleanup: {e}")
+    
+    def on_closing(self):
+        """Handle application closing with proper cleanup"""
+        try:
+            # Save settings
+            if hasattr(self, 'settings'):
+                self.settings.save_settings()
+            
+            # Cleanup voice memory
+            self.cleanup_voice_memory()
+            
+            # Close the application
+            self.destroy()
+            
+        except Exception as e:
+            logging.error(f"Error during application cleanup: {e}")
+            self.destroy()  # Force close if cleanup fails
     
     def setup_audio_device(self):
         """Configure audio input device"""
@@ -783,6 +864,9 @@ class WhisperTranscribePro(ctk.CTk):
         # Configure grid
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
+        
+        # Register cleanup handler for window close
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
     
     def create_widgets(self):
         """Create all UI elements with modern design"""
@@ -904,7 +988,7 @@ class WhisperTranscribePro(ctk.CTk):
         # Action Buttons Frame
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.grid(row=3, column=0, padx=10, pady=10, sticky="ew")
-        self.button_frame.grid_columnconfigure((0,1,2,3,4,5), weight=1)
+        self.button_frame.grid_columnconfigure((0,1,2,3,4,5,6), weight=1)
         
         # Action Buttons (without emoji for Pi compatibility)
         buttons = [
@@ -912,6 +996,7 @@ class WhisperTranscribePro(ctk.CTk):
             ("Copy All", self.copy_all),
             ("Export", self.export_transcription),
             ("Send to AI", self.send_to_ai),
+            ("Memory", self.open_memory_menu),
             ("Search", self.search_transcription),
             ("Clear", self.clear_transcriptions)
         ]
@@ -959,6 +1044,9 @@ class WhisperTranscribePro(ctk.CTk):
             text_color=hailo_color
         )
         self.hailo_label.grid(row=0, column=2, padx=5, pady=2)
+        
+        # Voice Memory status label
+        self.update_voice_memory_status_label()
         
         # Show/hide AI panel based on setting (after all UI elements are created)
         self.update_ai_panel_visibility()
@@ -1182,6 +1270,9 @@ class WhisperTranscribePro(ctk.CTk):
                     entry = f"[{timestamp}] {text}\n\n"
                     self.transcription_history.append(text)
                     
+                    # Store in voice memory
+                    self._store_voice_transcription(text, result, tmp.name, audio_data)
+                    
                     # Update display
                     self.ui_queue.put({
                         'type': 'transcription',
@@ -1218,6 +1309,967 @@ class WhisperTranscribePro(ctk.CTk):
             self.update_status("Transcription error", "red")
         
         self.processing = False
+    
+    def _store_voice_transcription(self, text: str, result: dict, audio_file_path: str, audio_data: np.ndarray):
+        """Store voice transcription in memory with metadata"""
+        if not self.voice_memory:
+            logging.debug("Voice memory not available, skipping transcription storage")
+            return
+        
+        try:
+            # Calculate audio metadata with fallbacks
+            try:
+                audio_duration = len(audio_data) / self.whisper_sample_rate
+            except (ZeroDivisionError, TypeError):
+                audio_duration = 0.0
+                logging.warning("Could not calculate audio duration, using 0.0")
+            
+            try:
+                confidence_score = self._calculate_confidence(result)
+            except Exception as conf_error:
+                confidence_score = 0.8
+                logging.warning(f"Could not calculate confidence score: {conf_error}")
+            
+            audio_metadata = {
+                'audio_file_path': audio_file_path,
+                'confidence_score': confidence_score,
+                'audio_duration': audio_duration,
+                'processing_time': time.time(),
+                'language': result.get('language', 'en') if result else 'en',
+                'segments': result.get('segments', []) if result else []
+            }
+            
+            # Store as pending transcription with graceful fallback
+            self._pending_transcription = {
+                'text': text,
+                'audio_metadata': audio_metadata,
+                'timestamp': time.time()
+            }
+            
+            # IMPORTANT: Also immediately save to memory even without AI response
+            # This ensures transcriptions are saved even when AI is disabled
+            try:
+                self.voice_memory.add_voice_interaction(
+                    user_input=text,
+                    assistant_response="",  # No AI response yet
+                    audio_metadata=audio_metadata,
+                    processing_times={'transcription': time.time() - audio_metadata.get('processing_time', time.time())},
+                    is_transcription_only=True  # Flag to indicate this is transcription without AI
+                )
+                logging.debug("Voice transcription immediately saved to memory")
+            except Exception as save_error:
+                logging.error(f"Failed to immediately save transcription: {save_error}")
+            
+            logging.debug("Voice transcription stored in pending memory")
+            
+        except Exception as e:
+            logging.error(f"Failed to store voice transcription (graceful fallback applied): {e}")
+            # Graceful fallback: store minimal information
+            self._pending_transcription = {
+                'text': text,
+                'audio_metadata': {'confidence_score': 0.8, 'audio_duration': 0.0},
+                'timestamp': time.time()
+            }
+    
+    def _store_ai_interaction(self, user_input: str, assistant_response: str):
+        """Store complete AI interaction in voice memory with graceful fallbacks"""
+        if not self.voice_memory:
+            logging.debug("Voice memory not available, skipping AI interaction storage")
+            return
+        
+        try:
+            # Get pending transcription metadata if available
+            audio_metadata = None
+            try:
+                if hasattr(self, '_pending_transcription') and self._pending_transcription:
+                    if self._pending_transcription.get('text') == user_input:
+                        audio_metadata = self._pending_transcription.get('audio_metadata', {})
+                        # Clear pending transcription
+                        self._pending_transcription = None
+            except Exception as meta_error:
+                logging.warning(f"Could not retrieve audio metadata: {meta_error}")
+                audio_metadata = None
+            
+            # Store complete interaction with retry logic
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    result = self.voice_memory.add_voice_interaction(
+                        user_input=user_input,
+                        assistant_response=assistant_response,
+                        audio_metadata=audio_metadata,
+                        agent_used="whisper_transcribe_pro",
+                        command_type="transcription_request",
+                        success=True
+                    )
+                    
+                    conversation_id = result.get('conversation_id', 'unknown')
+                    logging.debug(f"Stored voice interaction: {conversation_id}")
+                    
+                    # Check if storage was successful
+                    if result.get('success', False):
+                        return  # Success, exit retry loop
+                    else:
+                        logging.warning(f"Voice interaction storage reported failure: {result.get('errors', [])}")
+                        
+                except Exception as storage_error:
+                    if attempt < max_retries - 1:
+                        logging.warning(f"AI interaction storage attempt {attempt + 1} failed: {storage_error}")
+                    else:
+                        raise storage_error
+            
+        except Exception as e:
+            logging.error(f"Failed to store AI interaction after all retries (graceful fallback applied): {e}")
+            # Graceful fallback: log the interaction for potential manual recovery
+            try:
+                fallback_log = {
+                    'timestamp': time.time(),
+                    'user_input': user_input[:200],  # Truncate to prevent log spam
+                    'assistant_response': assistant_response[:200],
+                    'error': str(e)
+                }
+                logging.info(f"FALLBACK_INTERACTION: {fallback_log}")
+            except Exception as fallback_error:
+                logging.error(f"Even fallback logging failed: {fallback_error}")
+    
+    def update_voice_memory_status_label(self):
+        """Update the voice memory status label in the bottom frame"""
+        if hasattr(self, 'voice_memory') and self.voice_memory:
+            memory_status = "Memory: ON"
+            memory_color = "green"
+        elif VOICE_MEMORY_AVAILABLE:
+            memory_status = "Memory: OFF"
+            memory_color = "orange"
+        else:
+            memory_status = "Memory: N/A"
+            memory_color = "gray"
+        
+        if not hasattr(self, 'memory_label'):
+            self.memory_label = ctk.CTkLabel(
+                self.bottom_frame,
+                text=memory_status,
+                font=ctk.CTkFont(size=10),
+                text_color=memory_color
+            )
+            self.memory_label.grid(row=0, column=3, padx=5, pady=2)
+        else:
+            self.memory_label.configure(text=memory_status, text_color=memory_color)
+    
+    def open_memory_menu(self):
+        """Open voice memory management menu with conversation history"""
+        logging.info("Memory menu button clicked - starting to open dialog")
+        
+        if not VOICE_MEMORY_AVAILABLE:
+            logging.error("Voice Memory system not available")
+            self.show_notification("Voice Memory system not available")
+            return
+        
+        logging.info("Voice Memory is available, creating dialog window")
+        
+        # Create memory menu window
+        memory_window = ctk.CTkToplevel(self)
+        memory_window.title("Voice Memory Management")
+        memory_window.geometry("750x600")  # Slightly narrower
+        memory_window.transient(self)
+        
+        # Center the window
+        memory_window.update_idletasks()
+        x = (memory_window.winfo_screenwidth() // 2) - 375
+        y = (memory_window.winfo_screenheight() // 2) - 300
+        memory_window.geometry(f"750x600+{x}+{y}")
+        
+        logging.info("Memory dialog window created successfully")
+        
+        # Header frame with title and close button
+        header_frame = ctk.CTkFrame(memory_window)
+        header_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            header_frame,
+            text="Voice Memory Management",
+            font=ctk.CTkFont(size=18, weight="bold")
+        ).pack(side="left", padx=10)
+        
+        ctk.CTkButton(
+            header_frame,
+            text="✕ Close",
+            command=memory_window.destroy,
+            width=80,
+            height=30,
+            fg_color="transparent",
+            hover_color=("gray75", "gray25")
+        ).pack(side="right", padx=10)
+        
+        # Main container with proper scrolling
+        main_container = ctk.CTkFrame(memory_window)
+        main_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        
+        # Create scrollable frame with proper mouse wheel binding
+        main_scroll = ctk.CTkScrollableFrame(
+            main_container,
+            width=710,
+            height=480,
+            scrollbar_button_color=("gray55", "gray45"),
+            scrollbar_button_hover_color=("gray40", "gray60")
+        )
+        main_scroll.pack(fill="both", expand=True)
+        
+        # Enable mouse wheel scrolling on the frame and all children
+        def _on_mousewheel(event):
+            # Scroll the canvas directly
+            if hasattr(main_scroll, '_parent_canvas'):
+                main_scroll._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        # Bind mouse wheel to the scrollable frame
+        main_scroll.bind_all("<MouseWheel>", _on_mousewheel)
+        main_scroll.bind_all("<Button-4>", lambda e: _on_mousewheel(type('', (), {'delta': 120})()))
+        main_scroll.bind_all("<Button-5>", lambda e: _on_mousewheel(type('', (), {'delta': -120})()))
+        
+        # Status section
+        status_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+        status_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            status_frame,
+            text="System Status",
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).pack(anchor="w", pady=5)
+        
+        status_content = ctk.CTkFrame(status_frame)
+        status_content.pack(fill="x", padx=20, pady=5)
+        
+        if hasattr(self, 'voice_memory') and self.voice_memory:
+            status_text = "Voice Memory is Active"
+            status_color = "green"
+            status_icon = "✓"
+        else:
+            status_text = "Voice Memory is Inactive"
+            status_color = "red"
+            status_icon = "✗"
+        
+        ctk.CTkLabel(
+            status_content,
+            text=f"{status_icon} {status_text}",
+            text_color=status_color,
+            font=ctk.CTkFont(size=12)
+        ).pack(anchor="w")
+        
+        # Quick Actions section
+        actions_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+        actions_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            actions_frame,
+            text="Quick Actions",
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).pack(anchor="w", pady=5)
+        
+        # Action buttons in horizontal layout
+        button_container = ctk.CTkFrame(actions_frame)
+        button_container.pack(fill="x", padx=20, pady=5)
+        
+        ctk.CTkButton(
+            button_container,
+            text="Export Data",
+            command=lambda: self._quick_export_memory(),
+            width=140,
+            height=32
+        ).pack(side="left", padx=5)
+        
+        ctk.CTkButton(
+            button_container,
+            text="View Stats",
+            command=lambda: self._quick_show_memory_stats(),
+            width=140,
+            height=32
+        ).pack(side="left", padx=5)
+        
+        ctk.CTkButton(
+            button_container,
+            text="Settings",
+            command=lambda: [memory_window.destroy(), self.open_settings()],
+            width=140,
+            height=32
+        ).pack(side="left", padx=5)
+        
+        # Conversations section
+        conv_frame = ctk.CTkFrame(main_scroll, fg_color="transparent")
+        conv_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        ctk.CTkLabel(
+            conv_frame,
+            text="Recent Voice Conversations",
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).pack(anchor="w", pady=5)
+        
+        logging.info("Loading conversation history")
+        
+        # Load and display conversations in a contained frame
+        conv_container = ctk.CTkFrame(conv_frame)
+        conv_container.pack(fill="both", expand=True, padx=20, pady=5)
+        
+        self._load_conversation_history(conv_container)
+        
+        logging.info("Finished loading conversation history")
+        
+        # Unbind mousewheel when window is destroyed
+        def on_close():
+            main_scroll.unbind_all("<MouseWheel>")
+            main_scroll.unbind_all("<Button-4>")
+            main_scroll.unbind_all("<Button-5>")
+            memory_window.destroy()
+        
+        memory_window.protocol("WM_DELETE_WINDOW", on_close)
+    
+    def _quick_export_memory(self):
+        """Quick export memory function"""
+        if not hasattr(self, 'voice_memory') or not self.voice_memory:
+            self.show_notification("Voice memory not available")
+            return
+        
+        try:
+            # Create export directory
+            export_dir = os.path.expanduser("~/Documents/WhisperTranscriptions")
+            os.makedirs(export_dir, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = os.path.join(export_dir, f"voice_memory_export_{timestamp}.json")
+            
+            # Build export data manually
+            export_data = {
+                "exported_at": datetime.now().isoformat(),
+                "conversations": [],
+                "statistics": {}
+            }
+            
+            # Get conversations from database
+            if hasattr(self.voice_memory, 'conversation_memory'):
+                try:
+                    recent = self.voice_memory.conversation_memory.get_recent(limit=100, session_only=False)
+                    export_data["conversations"] = recent
+                except Exception as conv_error:
+                    logging.error(f"Failed to export conversations: {conv_error}")
+            
+            # Get conversations from context memory
+            if hasattr(self.voice_memory, 'context_memory'):
+                try:
+                    # Use the conversation_history directly if available
+                    if hasattr(self.voice_memory.context_memory, 'conversation_history'):
+                        export_data["context_memory"] = {
+                            "conversations": self.voice_memory.context_memory.conversation_history,
+                            "preferences": getattr(self.voice_memory.context_memory, 'user_preferences', {}),
+                            "patterns": getattr(self.voice_memory.context_memory, 'voice_command_patterns', {})
+                        }
+                except Exception as ctx_error:
+                    logging.debug(f"Context memory export not critical: {ctx_error}")
+            
+            # Add analytics if available
+            try:
+                analytics = self.voice_memory.get_comprehensive_analytics(days=7)
+                export_data["analytics"] = analytics
+            except:
+                pass
+            
+            # Save the export
+            with open(filename, 'w') as f:
+                json.dump(export_data, f, indent=2, default=str)
+            
+            # Get file size for feedback
+            file_size = os.path.getsize(filename) / 1024  # Size in KB
+            conv_count = len(export_data.get("conversations", []))
+            
+            # Show success dialog with details
+            success_msg = (
+                f"Memory Export Successful!\n\n"
+                f"File: {os.path.basename(filename)}\n"
+                f"Size: {file_size:.1f} KB\n"
+                f"Conversations: {conv_count}\n"
+                f"Location: ~/Documents/WhisperTranscriptions/"
+            )
+            
+            # Create a simple info dialog
+            import tkinter.messagebox as messagebox
+            messagebox.showinfo("Export Complete", success_msg)
+            
+            # Also show notification
+            self.show_notification(f"Exported {conv_count} conversations ({file_size:.1f}KB)")
+            logging.info(f"Exported memory to {filename} ({file_size:.1f}KB, {conv_count} conversations)")
+            
+        except Exception as e:
+            logging.error(f"Export failed: {e}")
+            self.show_notification(f"Export failed: {e}")
+    
+    def _quick_show_memory_stats(self):
+        """Quick show memory stats function"""
+        if not hasattr(self, 'voice_memory') or not self.voice_memory:
+            self.show_notification("Voice memory not available")
+            return
+        
+        try:
+            # Get comprehensive analytics
+            analytics = self.voice_memory.get_comprehensive_analytics(days=7)
+            
+            # Extract key metrics
+            voice_summary = analytics.get("voice_interaction_summary", {})
+            total_conversations = voice_summary.get('total_conversations', 0)
+            avg_confidence = voice_summary.get('average_confidence', 0)
+            
+            conv_patterns = analytics.get("conversation_patterns", {})
+            voice_rate = conv_patterns.get('voice_interaction_rate', 0)
+            
+            # Create a stats window instead of just notification
+            stats_window = ctk.CTkToplevel(self)
+            stats_window.title("Voice Memory Statistics")
+            stats_window.geometry("500x400")
+            stats_window.transient(self)
+            
+            # Center the window
+            stats_window.update_idletasks()
+            x = (stats_window.winfo_screenwidth() // 2) - 250
+            y = (stats_window.winfo_screenheight() // 2) - 200
+            stats_window.geometry(f"500x400+{x}+{y}")
+            
+            # Title
+            ctk.CTkLabel(
+                stats_window,
+                text="Voice Memory Statistics",
+                font=ctk.CTkFont(size=16, weight="bold")
+            ).pack(pady=10)
+            
+            # Create scrollable frame for stats
+            stats_frame = ctk.CTkScrollableFrame(stats_window, width=460, height=300)
+            stats_frame.pack(padx=20, pady=10, fill="both", expand=True)
+            
+            # Display stats sections
+            sections = [
+                ("Overview", [
+                    ("Total Conversations", total_conversations),
+                    ("Average Confidence", f"{avg_confidence:.1%}"),
+                    ("Voice Interaction Rate", f"{voice_rate:.1%}")
+                ]),
+                ("Quality Metrics", [
+                    ("Low Confidence Rate", f"{voice_summary.get('low_confidence_rate', 0):.1%}"),
+                    ("Wake Word Rate", f"{voice_summary.get('wake_word_rate', 0):.1%}"),
+                    ("Avg Audio Duration", f"{voice_summary.get('average_audio_duration', 0):.1f}s")
+                ]),
+                ("Recent Activity", [
+                    ("Last Hour", conv_patterns.get('conversation_frequency', {}).get('last_hour', 0)),
+                    ("Last Day", conv_patterns.get('conversation_frequency', {}).get('last_day', 0)),
+                    ("Last Week", conv_patterns.get('conversation_frequency', {}).get('last_week', 0))
+                ])
+            ]
+            
+            for section_title, metrics in sections:
+                # Section header
+                section_frame = ctk.CTkFrame(stats_frame)
+                section_frame.pack(fill="x", padx=10, pady=5)
+                
+                ctk.CTkLabel(
+                    section_frame,
+                    text=section_title,
+                    font=ctk.CTkFont(size=14, weight="bold")
+                ).pack(anchor="w", padx=10, pady=5)
+                
+                # Metrics
+                for label, value in metrics:
+                    metric_frame = ctk.CTkFrame(section_frame, fg_color="transparent")
+                    metric_frame.pack(fill="x", padx=20, pady=2)
+                    
+                    ctk.CTkLabel(
+                        metric_frame,
+                        text=f"{label}:",
+                        font=ctk.CTkFont(size=12)
+                    ).pack(side="left", padx=5)
+                    
+                    ctk.CTkLabel(
+                        metric_frame,
+                        text=str(value),
+                        font=ctk.CTkFont(size=12, weight="bold"),
+                        text_color="lightblue"
+                    ).pack(side="left", padx=5)
+            
+            # Close button
+            ctk.CTkButton(
+                stats_window,
+                text="Close",
+                command=stats_window.destroy,
+                width=100
+            ).pack(pady=10)
+            
+            # Also show brief notification
+            self.show_notification(f"Stats: {total_conversations} conversations, {avg_confidence:.0%} avg confidence")
+            
+            # Log detailed stats
+            logging.info(f"Voice Memory Analytics displayed: {total_conversations} conversations")
+            
+        except Exception as e:
+            logging.error(f"Stats failed: {e}")
+            import traceback
+            traceback.print_exc()
+            self.show_notification(f"Stats failed: {e}")
+    
+    def _load_conversation_history(self, parent_frame, page=1, items_per_page=10):
+        """Load and display conversation history with pagination"""
+        logging.info(f"Loading conversation history page {page}")
+        
+        if not hasattr(self, 'voice_memory') or not self.voice_memory:
+            logging.error("Voice memory not available")
+            ctk.CTkLabel(
+                parent_frame,
+                text="Voice memory not available",
+                text_color="red"
+            ).pack(anchor="w", padx=10, pady=5)
+            return
+        
+        # Clear existing content
+        for widget in parent_frame.winfo_children():
+            widget.destroy()
+        
+        try:
+            # Get ALL conversations first for proper pagination
+            all_conversations = []
+            
+            # Get from database (SQLite) - most recent first
+            try:
+                recent = self.voice_memory.conversation_memory.get_recent(limit=100, session_only=False)
+                for conv in recent:
+                    confidence = conv.get('transcription_confidence', 0.0) or 0.0
+                    all_conversations.append({
+                        'id': conv.get('id'),
+                        'timestamp': conv.get('timestamp'),
+                        'user_input': conv.get('user', ''),
+                        'assistant_response': conv.get('assistant', ''),
+                        'confidence': confidence,
+                        'source': 'database'
+                    })
+            except Exception as e:
+                logging.error(f"Failed to load from database: {e}")
+            
+            # Sort by timestamp (newest first)
+            all_conversations.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+            
+            if not all_conversations:
+                ctk.CTkLabel(
+                    parent_frame,
+                    text="No conversations found yet\nStart recording to build your conversation history!",
+                    text_color="gray",
+                    font=ctk.CTkFont(size=11)
+                ).pack(anchor="w", padx=10, pady=20)
+                return
+            
+            # Calculate pagination
+            total_items = len(all_conversations)
+            total_pages = (total_items + items_per_page - 1) // items_per_page
+            start_idx = (page - 1) * items_per_page
+            end_idx = min(start_idx + items_per_page, total_items)
+            
+            # Add pagination controls at top
+            pagination_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
+            pagination_frame.pack(fill="x", padx=10, pady=5)
+            
+            # Page info
+            ctk.CTkLabel(
+                pagination_frame,
+                text=f"Page {page} of {total_pages} ({total_items} total conversations)",
+                font=ctk.CTkFont(size=12, weight="bold")
+            ).pack(side="left", padx=5)
+            
+            # Navigation buttons
+            nav_frame = ctk.CTkFrame(pagination_frame, fg_color="transparent")
+            nav_frame.pack(side="right", padx=5)
+            
+            if page > 1:
+                ctk.CTkButton(
+                    nav_frame,
+                    text="← Previous",
+                    command=lambda: self._load_conversation_history(parent_frame, page-1, items_per_page),
+                    width=80,
+                    height=28
+                ).pack(side="left", padx=2)
+            
+            if page < total_pages:
+                ctk.CTkButton(
+                    nav_frame,
+                    text="Next →",
+                    command=lambda: self._load_conversation_history(parent_frame, page+1, items_per_page),
+                    width=80,
+                    height=28
+                ).pack(side="left", padx=2)
+            
+            # Clear all button
+            ctk.CTkButton(
+                nav_frame,
+                text="Clear All",
+                command=lambda: self._clear_all_conversations(parent_frame),
+                width=80,
+                height=28,
+                fg_color="red",
+                hover_color="darkred"
+            ).pack(side="left", padx=10)
+            
+            # Display conversations for current page
+            conversations_to_show = all_conversations[start_idx:end_idx]
+            
+            logging.info(f"Displaying {len(conversations_to_show)} conversations on page {page}")
+            
+            for i, conv in enumerate(conversations_to_show):
+                try:
+                    # Add conversation ID for deletion capability
+                    conv['display_index'] = start_idx + i + 1
+                    self._create_conversation_widget_with_delete(parent_frame, conv, i)
+                except Exception as e:
+                    logging.error(f"Failed to create widget: {e}")
+            
+            # Add page navigation at bottom too if many items
+            if total_pages > 1:
+                bottom_nav = ctk.CTkFrame(parent_frame, fg_color="transparent")
+                bottom_nav.pack(fill="x", padx=10, pady=10)
+                
+                # Quick page jump
+                for p in range(1, min(total_pages + 1, 6)):  # Show first 5 pages
+                    btn_color = "green" if p == page else "gray"
+                    ctk.CTkButton(
+                        bottom_nav,
+                        text=str(p),
+                        command=lambda pg=p: self._load_conversation_history(parent_frame, pg, items_per_page),
+                        width=30,
+                        height=28,
+                        fg_color=btn_color
+                    ).pack(side="left", padx=2)
+                
+                if total_pages > 5:
+                    ctk.CTkLabel(bottom_nav, text="...").pack(side="left", padx=5)
+                    ctk.CTkButton(
+                        bottom_nav,
+                        text=str(total_pages),
+                        command=lambda: self._load_conversation_history(parent_frame, total_pages, items_per_page),
+                        width=40,
+                        height=28
+                    ).pack(side="left", padx=2)
+                    
+        except Exception as e:
+            logging.error(f"Failed to load conversation history: {e}")
+            ctk.CTkLabel(
+                parent_frame,
+                text=f"Error loading conversations: {str(e)}",
+                text_color="red"
+            ).pack(anchor="w", padx=10, pady=5)
+    
+    def _create_conversation_widget_with_delete(self, parent, conversation, index):
+        """Create a widget for a single conversation with delete button"""
+        # Container frame
+        conv_frame = ctk.CTkFrame(parent)
+        conv_frame.pack(fill="x", padx=5, pady=3)
+        
+        # Parse data
+        conv_id = conversation.get('id')
+        display_idx = conversation.get('display_index', index + 1)
+        timestamp = conversation.get('timestamp', 'Unknown')
+        user_input = conversation.get('user_input', 'N/A')
+        ai_response = conversation.get('assistant_response', 'N/A')
+        confidence = conversation.get('confidence', 0.0)
+        source = conversation.get('source', 'unknown')
+        
+        # Format timestamp
+        try:
+            if isinstance(timestamp, str) and 'T' in timestamp:
+                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                time_str = dt.strftime("%m/%d %H:%M:%S")
+            else:
+                time_str = str(timestamp)
+        except:
+            time_str = str(timestamp)
+        
+        # Header with delete button
+        header_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=5, pady=2)
+        
+        # Header text
+        source_icon = {"database": "[DB]", "context": "[JSON]", "history": "[HIST]"}.get(source, "[?]")
+        header_text = f"{source_icon} #{display_idx} - {time_str}"
+        if confidence > 0:
+            header_text += f" | Conf: {confidence:.1%}"
+        
+        ctk.CTkLabel(
+            header_frame,
+            text=header_text,
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        ).pack(side="left", padx=5)
+        
+        # Delete button
+        if conv_id and source == 'database':
+            ctk.CTkButton(
+                header_frame,
+                text="Delete",
+                command=lambda: self._delete_conversation(conv_id, conv_frame),
+                width=50,
+                height=20,
+                font=ctk.CTkFont(size=10),
+                fg_color="transparent",
+                text_color="red",
+                hover_color=("gray75", "gray25")
+            ).pack(side="right", padx=5)
+        
+        # User input (simplified - just label for performance)
+        if user_input and user_input != 'N/A':
+            user_text = f"User: {user_input[:100]}{'...' if len(user_input) > 100 else ''}"
+            ctk.CTkLabel(
+                conv_frame,
+                text=user_text,
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                justify="left",
+                text_color="lightblue",
+                wraplength=600
+            ).pack(anchor="w", padx=15, pady=2, fill="x")
+        
+        # AI response (simplified)
+        if ai_response and ai_response != 'N/A':
+            ai_text = f"AI: {ai_response[:100]}{'...' if len(ai_response) > 100 else ''}"
+            ctk.CTkLabel(
+                conv_frame,
+                text=ai_text,
+                font=ctk.CTkFont(size=11),
+                anchor="w",
+                justify="left",
+                text_color="lightgreen",
+                wraplength=600
+            ).pack(anchor="w", padx=15, pady=2, fill="x")
+    
+    def _delete_conversation(self, conv_id, widget_frame):
+        """Delete a single conversation"""
+        try:
+            if hasattr(self.voice_memory.conversation_memory, 'delete_conversation'):
+                self.voice_memory.conversation_memory.delete_conversation(conv_id)
+            else:
+                # Direct database deletion if method doesn't exist
+                import sqlite3
+                conn = sqlite3.connect(self.voice_memory.conversation_memory.db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM conversations WHERE id = ?", (conv_id,))
+                conn.commit()
+                conn.close()
+            
+            # Remove widget
+            widget_frame.destroy()
+            self.show_notification("Conversation deleted")
+            logging.info(f"Deleted conversation {conv_id}")
+            
+        except Exception as e:
+            logging.error(f"Failed to delete conversation: {e}")
+            self.show_notification(f"Delete failed: {e}")
+    
+    def _clear_all_conversations(self, parent_frame):
+        """Clear all conversations with confirmation"""
+        # Create confirmation dialog
+        if messagebox.askyesno("Clear All Conversations", 
+                               "Are you sure you want to delete ALL conversations?\n\nThis cannot be undone!"):
+            try:
+                # Clear database
+                import sqlite3
+                conn = sqlite3.connect(self.voice_memory.conversation_memory.db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM conversations")
+                conn.commit()
+                conn.close()
+                
+                # Clear JSON memory
+                if hasattr(self.voice_memory.context_memory, 'conversation_history'):
+                    self.voice_memory.context_memory.conversation_history.clear()
+                    self.voice_memory.context_memory.save_memory()
+                
+                self.show_notification("All conversations cleared")
+                logging.info("Cleared all conversations")
+                
+                # Reload the view
+                self._load_conversation_history(parent_frame)
+                
+            except Exception as e:
+                logging.error(f"Failed to clear conversations: {e}")
+                self.show_notification(f"Clear failed: {e}")
+    
+    def _create_conversation_widget(self, parent, conversation, index):
+        """Create a widget for a single conversation entry"""
+        # Container frame for this conversation
+        conv_frame = ctk.CTkFrame(parent)
+        conv_frame.pack(fill="x", padx=5, pady=3)
+        
+        # Parse conversation data
+        timestamp = conversation.get('timestamp', 'Unknown')
+        user_input = conversation.get('user_input', 'N/A')
+        ai_response = conversation.get('assistant_response', 'N/A')
+        confidence = conversation.get('confidence', 0.0)
+        source = conversation.get('source', 'unknown')
+        
+        # Format timestamp
+        try:
+            if isinstance(timestamp, str) and 'T' in timestamp:
+                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                time_str = dt.strftime("%m/%d %H:%M:%S")
+            else:
+                time_str = str(timestamp)
+        except:
+            time_str = str(timestamp)
+        
+        # Header with timestamp and confidence
+        header_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=5, pady=2)
+        
+        # Create header text with source indicator (ASCII for Pi compatibility)
+        source_icon = {"database": "[DB]", "context": "[JSON]", "history": "[HIST]"}.get(source, "[UNK]")
+        header_text = f"{source_icon} #{index+1} - {time_str}"
+        if confidence > 0:
+            header_text += f" | Confidence: {confidence:.2%}"
+        
+        ctk.CTkLabel(
+            header_frame,
+            text=header_text,
+            font=ctk.CTkFont(size=10),
+            text_color="gray"
+        ).pack(anchor="w", padx=5, pady=1)
+        
+        # User input - use textbox for better text wrapping
+        if user_input and user_input != 'N/A':
+            user_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+            user_frame.pack(fill="x", padx=15, pady=2)
+            
+            ctk.CTkLabel(
+                user_frame,
+                text="User:",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color="lightblue"
+            ).pack(anchor="w", side="left", padx=(0, 5))
+            
+            # Truncate long text and use CTkTextbox for proper wrapping
+            display_text = user_input[:200] + ('...' if len(user_input) > 200 else '')
+            user_textbox = ctk.CTkTextbox(
+                user_frame,
+                height=40,
+                width=550,
+                font=ctk.CTkFont(size=11),
+                fg_color="transparent",
+                wrap="word"
+            )
+            user_textbox.pack(anchor="w", side="left", fill="x", expand=True)
+            user_textbox.insert("1.0", display_text)
+            user_textbox.configure(state="disabled")  # Make read-only
+        
+        # AI response (if available)
+        if ai_response and ai_response != 'N/A':
+            ai_frame = ctk.CTkFrame(conv_frame, fg_color="transparent")
+            ai_frame.pack(fill="x", padx=15, pady=2)
+            
+            ctk.CTkLabel(
+                ai_frame,
+                text="AI:",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color="lightgreen"
+            ).pack(anchor="w", side="left", padx=(0, 5))
+            
+            # Truncate long text and use CTkTextbox for proper wrapping
+            display_text = ai_response[:200] + ('...' if len(ai_response) > 200 else '')
+            ai_textbox = ctk.CTkTextbox(
+                ai_frame,
+                height=40,
+                width=550,
+                font=ctk.CTkFont(size=11),
+                fg_color="transparent",
+                wrap="word"
+            )
+            ai_textbox.pack(anchor="w", side="left", fill="x", expand=True)
+            ai_textbox.insert("1.0", display_text)
+            ai_textbox.configure(state="disabled")  # Make read-only
+    
+    def _calculate_confidence(self, result: dict) -> float:
+        """Calculate average confidence from Whisper result"""
+        try:
+            if 'segments' in result and result['segments']:
+                confidences = []
+                for segment in result['segments']:
+                    if 'avg_logprob' in segment:
+                        # Convert log probability to confidence (rough approximation)
+                        confidence = min(1.0, max(0.0, (segment['avg_logprob'] + 1.0)))
+                        confidences.append(confidence)
+                
+                if confidences:
+                    return sum(confidences) / len(confidences)
+            
+            # Fallback to default confidence
+            return 0.8
+            
+        except Exception as e:
+            logging.debug(f"Confidence calculation error: {e}")
+            return 0.8
+    
+    def _enhance_prompt_with_memory(self, user_input: str) -> str:
+        """Enhance user input with contextual information from voice memory"""
+        if not self.voice_memory:
+            return user_input
+        
+        try:
+            # Get contextual hints from memory
+            hints = self.voice_memory.get_contextual_response_hints(user_input)
+            
+            # Get recent conversation context
+            fused_context = self.voice_memory.get_fused_context(
+                context_window_size=3,
+                voice_only=True,
+                include_audio_metadata=False
+            )
+            
+            # Build enhanced prompt
+            enhanced_parts = []
+            
+            # Add conversation context if available
+            if fused_context.get('conversation_history'):
+                recent_convs = fused_context['conversation_history'][-2:]  # Last 2 conversations
+                if recent_convs:
+                    enhanced_parts.append("Previous conversation context:")
+                    for conv in recent_convs:
+                        user_text = conv.get('user_input', '')
+                        ai_text = conv.get('assistant_response', '')
+                        if user_text and ai_text:
+                            enhanced_parts.append(f"User: {user_text[:100]}")
+                            enhanced_parts.append(f"Assistant: {ai_text[:100]}")
+                    enhanced_parts.append("")
+            
+            # Add similar past interactions
+            similar = hints.get('similar_past_interactions', [])
+            if similar:
+                enhanced_parts.append("Similar past interactions:")
+                for interaction in similar[:2]:  # Top 2 similar
+                    past_user = interaction.get('user_input', '')
+                    past_ai = interaction.get('assistant_response', '')
+                    if past_user and past_ai:
+                        enhanced_parts.append(f"Past: {past_user[:80]} -> {past_ai[:80]}")
+                enhanced_parts.append("")
+            
+            # Add current user input
+            enhanced_parts.append("Current user input:")
+            enhanced_parts.append(user_input)
+            
+            # Add response guidance based on patterns
+            patterns = hints.get('suggested_response_patterns', [])
+            if patterns:
+                enhanced_parts.append("")
+                enhanced_parts.append("Response guidance:")
+                for pattern in patterns[:2]:  # Top 2 patterns
+                    suggestion = pattern.get('suggestion', '')
+                    if suggestion:
+                        enhanced_parts.append(f"- {suggestion}")
+            
+            enhanced_prompt = "\n".join(enhanced_parts)
+            
+            # Log the enhancement (debug only)
+            if len(enhanced_prompt) > len(user_input):
+                logging.debug(f"Enhanced prompt with {len(enhanced_parts)} context elements")
+            
+            return enhanced_prompt
+            
+        except Exception as e:
+            logging.error(f"Failed to enhance prompt with memory: {e}")
+            return user_input
     
     def copy_to_clipboard(self, text):
         """Copy text to system clipboard"""
@@ -1320,11 +2372,14 @@ class WhisperTranscribePro(ctk.CTk):
             self.show_notification("Empty transcription - nothing to send", "warning")
             return
         
+        # Get contextual hints from voice memory
+        enhanced_prompt = self._enhance_prompt_with_memory(last_transcription)
+        
         # Limit text length to prevent excessive API usage
         max_length = 4000  # Reasonable limit for most AI providers
-        if len(last_transcription) > max_length:
-            last_transcription = last_transcription[:max_length] + "..."
-            logging.info(f"Truncated long transcription from {len(last_transcription)} to {max_length} chars")
+        if len(enhanced_prompt) > max_length:
+            enhanced_prompt = enhanced_prompt[:max_length] + "..."
+            logging.info(f"Truncated long enhanced prompt from {len(enhanced_prompt)} to {max_length} chars")
         
         self.show_notification("Sending to AI...", "info")
         
@@ -1332,11 +2387,11 @@ class WhisperTranscribePro(ctk.CTk):
         def process_ai():
             try:
                 if provider_type == "local":
-                    # Use existing send_to_ai method for local AI
-                    result = self.local_ai.send_to_ai(last_transcription)
+                    # Use existing send_to_ai method for local AI with enhanced prompt
+                    result = self.local_ai.send_to_ai(enhanced_prompt)
                 else:
-                    # Use send_message for API providers
-                    response = provider.send_message(last_transcription)
+                    # Use send_message for API providers with enhanced prompt
+                    response = provider.send_message(enhanced_prompt)
                     if response.startswith("Error:"):
                         result = {"success": False, "error": response}
                     else:
@@ -1437,6 +2492,9 @@ class WhisperTranscribePro(ctk.CTk):
             self.ai_display.insert("end", ai_text)
             self.ai_display.see("end")
             self.show_notification("AI responded", "success")
+            
+            # Store AI interaction in voice memory
+            self._store_ai_interaction(original_text, result['response'])
         else:
             error_text = f"[{timestamp}] Error: {result['error']}\n\n"
             self.ai_display.insert("end", error_text)
@@ -1687,6 +2745,7 @@ class SettingsWindow(ctk.CTkToplevel):
         self.tabview.add("Transcription")
         self.tabview.add("Interface")
         self.tabview.add("AI Integration")
+        self.tabview.add("Voice Memory")
         self.tabview.add("Advanced")
         
         # Audio Settings Tab
@@ -2350,6 +3409,169 @@ class SettingsWindow(ctk.CTkToplevel):
         # Update server status
         self.update_ai_server_status()
         
+        # Voice Memory Settings Tab
+        memory_tab = self.tabview.tab("Voice Memory")
+        memory_frame = ctk.CTkScrollableFrame(memory_tab, height=250)
+        memory_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Enable mouse wheel scrolling
+        self._bind_mousewheel(memory_frame)
+        
+        ctk.CTkLabel(
+            memory_frame,
+            text="Voice Memory Settings",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(pady=10)
+        
+        # Voice Memory Status
+        status_frame = ctk.CTkFrame(memory_frame)
+        status_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            status_frame,
+            text="Memory System Status:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        # Status indicator
+        memory_available = VOICE_MEMORY_AVAILABLE and hasattr(self.parent, 'voice_memory') and self.parent.voice_memory is not None
+        status_text = "✅ Available and Active" if memory_available else "❌ Not Available"
+        status_color = "green" if memory_available else "red"
+        
+        self.memory_status_label = ctk.CTkLabel(
+            status_frame,
+            text=status_text,
+            text_color=status_color,
+            font=ctk.CTkFont(size=11)
+        )
+        self.memory_status_label.pack(anchor="w", padx=20, pady=2)
+        
+        # Enable/Disable Voice Memory
+        ctk.CTkLabel(
+            memory_frame,
+            text="Core Settings:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", pady=(15, 5))
+        
+        self.voice_memory_enabled = ctk.CTkCheckBox(
+            memory_frame,
+            text="Enable Voice Memory System",
+            command=self.on_voice_memory_change
+        )
+        self.voice_memory_enabled.pack(anchor="w", padx=20, pady=5)
+        
+        # Audio Metadata
+        self.voice_memory_audio_metadata = ctk.CTkCheckBox(
+            memory_frame,
+            text="Store Audio Metadata (confidence, duration, etc.)",
+            command=self.on_voice_memory_change
+        )
+        self.voice_memory_audio_metadata.pack(anchor="w", padx=20, pady=5)
+        
+        # Pattern Learning
+        self.voice_memory_pattern_learning = ctk.CTkCheckBox(
+            memory_frame,
+            text="Enable Pattern Learning and Analysis",
+            command=self.on_voice_memory_change
+        )
+        self.voice_memory_pattern_learning.pack(anchor="w", padx=20, pady=5)
+        
+        # Context Window
+        context_frame = ctk.CTkFrame(memory_frame)
+        context_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            context_frame,
+            text="Context Window Size:",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        ctk.CTkLabel(
+            context_frame,
+            text="Number of recent interactions to include in AI context",
+            font=ctk.CTkFont(size=10)
+        ).pack(anchor="w", padx=20, pady=2)
+        
+        self.context_limit_var = ctk.StringVar(value=str(self.settings.settings.get("voice_memory_context_limit", 10)))
+        self.context_limit_label = ctk.CTkLabel(context_frame, text=f"Context Limit: {self.context_limit_var.get()}")
+        self.context_limit_label.pack(anchor="w", padx=20, pady=2)
+        
+        self.context_limit_slider = ctk.CTkSlider(
+            context_frame,
+            from_=3,
+            to=20,
+            number_of_steps=17,
+            command=self.update_context_limit_label
+        )
+        self.context_limit_slider.pack(anchor="w", padx=30, pady=5)
+        self.context_limit_slider.set(self.settings.settings.get("voice_memory_context_limit", 10))
+        
+        # Memory Management
+        mgmt_frame = ctk.CTkFrame(memory_frame)
+        mgmt_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            mgmt_frame,
+            text="Memory Management:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        # Auto-save
+        self.voice_memory_auto_save = ctk.CTkCheckBox(
+            mgmt_frame,
+            text="Auto-save memory data",
+            command=self.on_voice_memory_change
+        )
+        self.voice_memory_auto_save.pack(anchor="w", padx=20, pady=5)
+        
+        # Compression
+        self.voice_memory_compression = ctk.CTkCheckBox(
+            mgmt_frame,
+            text="Enable memory compression",
+            command=self.on_voice_memory_change
+        )
+        self.voice_memory_compression.pack(anchor="w", padx=20, pady=5)
+        
+        # Memory Actions
+        actions_frame = ctk.CTkFrame(memory_frame)
+        actions_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(
+            actions_frame,
+            text="Memory Actions:",
+            font=ctk.CTkFont(size=12, weight="bold")
+        ).pack(anchor="w", padx=10, pady=5)
+        
+        # Buttons row
+        button_row = ctk.CTkFrame(actions_frame)
+        button_row.pack(fill="x", padx=20, pady=5)
+        
+        self.memory_export_btn = ctk.CTkButton(
+            button_row,
+            text="Export Memory",
+            command=self.export_voice_memory,
+            width=120
+        )
+        self.memory_export_btn.pack(side="left", padx=5)
+        
+        self.memory_clear_btn = ctk.CTkButton(
+            button_row,
+            text="Clear Memory",
+            command=self.clear_voice_memory,
+            width=120,
+            fg_color="red",
+            hover_color="darkred"
+        )
+        self.memory_clear_btn.pack(side="left", padx=5)
+        
+        self.memory_stats_btn = ctk.CTkButton(
+            button_row,
+            text="View Stats",
+            command=self.show_memory_stats,
+            width=120
+        )
+        self.memory_stats_btn.pack(side="left", padx=5)
+        
         # Advanced Settings Tab
         adv_tab = self.tabview.tab("Advanced")
         adv_frame = ctk.CTkScrollableFrame(adv_tab, height=250)
@@ -2411,6 +3633,170 @@ class SettingsWindow(ctk.CTkToplevel):
             width=150,
             height=30
         ).pack(anchor="w", padx=30, pady=5)
+        
+        # Load initial values for voice memory settings
+        self.load_voice_memory_settings()
+        
+    def load_voice_memory_settings(self):
+        """Load initial values for voice memory settings"""
+        # Set checkbox values
+        self.voice_memory_enabled.select() if self.settings.settings.get("voice_memory_enabled", True) else self.voice_memory_enabled.deselect()
+        self.voice_memory_audio_metadata.select() if self.settings.settings.get("voice_memory_audio_metadata", True) else self.voice_memory_audio_metadata.deselect()
+        self.voice_memory_pattern_learning.select() if self.settings.settings.get("voice_memory_pattern_learning", True) else self.voice_memory_pattern_learning.deselect()
+        self.voice_memory_auto_save.select() if self.settings.settings.get("voice_memory_auto_save", True) else self.voice_memory_auto_save.deselect()
+        self.voice_memory_compression.select() if self.settings.settings.get("voice_memory_compression", True) else self.voice_memory_compression.deselect()
+        
+        # Update memory status
+        self.update_memory_status()
+    
+    def update_memory_status(self):
+        """Update the memory system status display"""
+        memory_available = VOICE_MEMORY_AVAILABLE and hasattr(self.parent, 'voice_memory') and self.parent.voice_memory is not None
+        if memory_available:
+            self.memory_status_label.configure(text="✅ Available and Active", text_color="green")
+        else:
+            self.memory_status_label.configure(text="❌ Not Available", text_color="red")
+    
+    def update_context_limit_label(self, value):
+        """Update context limit label"""
+        self.context_limit_label.configure(text=f"Context Limit: {int(float(value))}")
+    
+    def on_voice_memory_change(self):
+        """Handle voice memory setting changes"""
+        # Update settings immediately
+        self.settings.settings["voice_memory_enabled"] = self.voice_memory_enabled.get()
+        self.settings.settings["voice_memory_audio_metadata"] = self.voice_memory_audio_metadata.get()
+        self.settings.settings["voice_memory_pattern_learning"] = self.voice_memory_pattern_learning.get()
+        self.settings.settings["voice_memory_auto_save"] = self.voice_memory_auto_save.get()
+        self.settings.settings["voice_memory_compression"] = self.voice_memory_compression.get()
+        self.settings.settings["voice_memory_context_limit"] = int(self.context_limit_slider.get())
+    
+    def export_voice_memory(self):
+        """Export voice memory data"""
+        if not hasattr(self.parent, 'voice_memory') or not self.parent.voice_memory:
+            self.show_notification("Voice memory not available", "error")
+            return
+        
+        try:
+            # Create export directory
+            export_dir = os.path.expanduser("~/Documents/WhisperTranscriptions")
+            os.makedirs(export_dir, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = os.path.join(export_dir, f"voice_memory_export_{timestamp}.json")
+            
+            # Export session data
+            export_data = self.parent.voice_memory.export_session_data(
+                format="json",
+                include_analytics=True
+            )
+            
+            with open(filename, 'w') as f:
+                json.dump(export_data, f, indent=2, default=str)
+            
+            self.show_notification(f"Memory exported to {os.path.basename(filename)}", "success")
+            
+        except Exception as e:
+            self.show_notification(f"Export failed: {e}", "error")
+    
+    def clear_voice_memory(self):
+        """Clear voice memory with confirmation"""
+        if not hasattr(self.parent, 'voice_memory') or not self.parent.voice_memory:
+            self.show_notification("Voice memory not available", "error")
+            return
+        
+        # Simple confirmation using CTk
+        import tkinter.messagebox as msgbox
+        
+        if msgbox.askyesno("Clear Memory", "Are you sure you want to clear all voice memory? This cannot be undone."):
+            try:
+                result = self.parent.voice_memory.clear_memory(
+                    clear_context=True,
+                    clear_conversation=True,
+                    keep_preferences=True
+                )
+                
+                if result.get("context_cleared", False) or result.get("conversation_cleared", False):
+                    self.show_notification("Memory cleared successfully", "success")
+                else:
+                    self.show_notification("Memory clear completed with warnings", "warning")
+                    
+            except Exception as e:
+                self.show_notification(f"Clear failed: {e}", "error")
+    
+    def show_memory_stats(self):
+        """Show voice memory statistics"""
+        if not hasattr(self.parent, 'voice_memory') or not self.parent.voice_memory:
+            self.show_notification("Voice memory not available", "error")
+            return
+        
+        try:
+            analytics = self.parent.voice_memory.get_comprehensive_analytics(days=7)
+            
+            # Create stats display window
+            stats_window = ctk.CTkToplevel(self)
+            stats_window.title("Voice Memory Statistics")
+            stats_window.geometry("600x400")
+            stats_window.transient(self)
+            stats_window.grab_set()
+            
+            # Add scrollable text area
+            stats_frame = ctk.CTkScrollableFrame(stats_window)
+            stats_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            
+            # Format and display stats
+            stats_text = []
+            stats_text.append("📊 Voice Memory Statistics (Last 7 Days)")
+            stats_text.append("=" * 50)
+            
+            # Basic stats
+            system_perf = analytics.get("system_performance", {})
+            stats_text.append(f"Total Interactions: {system_perf.get('total_interactions', 0)}")
+            stats_text.append(f"Successful Interactions: {system_perf.get('successful_interactions', 0)}")
+            stats_text.append(f"Average Response Time: {system_perf.get('average_response_time', 0):.2f}s")
+            stats_text.append("")
+            
+            # Memory stats
+            memory_stats = analytics.get("memory_efficiency", {})
+            stats_text.append("🧠 Memory System Status:")
+            stats_text.append(f"Context Memory: {'Active' if memory_stats.get('context_memory_available') else 'Inactive'}")
+            stats_text.append(f"Conversation Memory: {'Active' if memory_stats.get('conversation_memory_available') else 'Inactive'}")
+            stats_text.append(f"Memory Fusion Calls: {memory_stats.get('memory_fusion_calls', 0)}")
+            stats_text.append("")
+            
+            # Transcription quality
+            quality = analytics.get("transcription_quality", {})
+            if quality:
+                summary = quality.get("summary", {})
+                stats_text.append("🎤 Transcription Quality:")
+                stats_text.append(f"Average Confidence: {summary.get('overall_avg_confidence', 0):.2f}")
+                stats_text.append(f"Total Transcriptions: {summary.get('total_transcriptions', 0)}")
+                stats_text.append("")
+            
+            # Recommendations
+            recommendations = analytics.get("recommendations", [])
+            if recommendations:
+                stats_text.append("💡 Recommendations:")
+                for rec in recommendations[:3]:
+                    stats_text.append(f"• {rec.get('message', 'No message')}")
+                stats_text.append("")
+            
+            # Display stats
+            stats_label = ctk.CTkLabel(
+                stats_frame,
+                text="\n".join(stats_text),
+                font=ctk.CTkFont(family="monospace", size=12),
+                justify="left"
+            )
+            stats_label.pack(anchor="w", padx=10, pady=10)
+            
+        except Exception as e:
+            self.show_notification(f"Stats failed: {e}", "error")
+    
+    def show_notification(self, message, type="info"):
+        """Show a simple notification"""
+        # Simple console output for now
+        print(f"[{type.upper()}] {message}")
         
     def _create_bottom_buttons(self, button_frame):
         """Create the bottom button row"""

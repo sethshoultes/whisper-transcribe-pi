@@ -1,0 +1,268 @@
+[
+  {
+    "timestamp": "2025-08-16T09:16:27.440779",
+    "audio_file_path": "/tmp/test_audio.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "What do you see in the room",
+    "confidence_score": 0.87,
+    "processing_time_seconds": 2.3,
+    "word_count": 7,
+    "character_count": 27,
+    "language_detected": "en",
+    "segments": [
+      {
+        "start": 0,
+        "end": 4.5,
+        "text": "What do you see in the room"
+      }
+    ],
+    "audio_duration_seconds": 4.5
+  },
+  {
+    "timestamp": "2025-08-16T09:17:16.400448",
+    "audio_file_path": "/tmp/weather_query.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "Hey assistant, what's the weather like today?",
+    "confidence_score": 0.89,
+    "processing_time_seconds": 1.8,
+    "word_count": 7,
+    "character_count": 45,
+    "language_detected": "en",
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 3.2,
+        "text": "Hey assistant, what's the weather like today?"
+      }
+    ],
+    "audio_duration_seconds": 3.2
+  },
+  {
+    "timestamp": "2025-08-16T09:31:56.955551",
+    "audio_file_path": "/tmp/test_audio.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "What time is it?",
+    "confidence_score": 0.87,
+    "processing_time_seconds": 1.2,
+    "word_count": 4,
+    "character_count": 16,
+    "language_detected": "en",
+    "segments": []
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.018234",
+    "audio_file_path": "/tmp/audio_1755358383.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "What's the weather like today?",
+    "confidence_score": 0.92,
+    "processing_time_seconds": 1.5,
+    "word_count": 5,
+    "character_count": 30,
+    "language_detected": "en-US",
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.4,
+        "text": "What's the weather like today?"
+      }
+    ],
+    "audio_duration_seconds": 2.4
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.085435",
+    "audio_file_path": "/tmp/audio_1755358383.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "What time is it?",
+    "confidence_score": 0.89,
+    "processing_time_seconds": 1.3599999999999999,
+    "word_count": 4,
+    "character_count": 16,
+    "language_detected": "en-US",
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 1.28,
+        "text": "What time is it?"
+      }
+    ],
+    "audio_duration_seconds": 1.28
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.166826",
+    "audio_file_path": "/tmp/audio_1755358383.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "Turn on the lights in the living room",
+    "confidence_score": 0.85,
+    "processing_time_seconds": 1.5699999999999998,
+    "word_count": 8,
+    "character_count": 37,
+    "language_detected": "en-US",
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.96,
+        "text": "Turn on the lights in the living room"
+      }
+    ],
+    "audio_duration_seconds": 2.96
+  },
+  {
+    "timestamp": "2025-08-16T09:33:03.270604",
+    "audio_file_path": "/tmp/audio_1755358383.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "Tell me about artificial intelligence",
+    "confidence_score": 0.94,
+    "processing_time_seconds": 1.5699999999999998,
+    "word_count": 5,
+    "character_count": 37,
+    "language_detected": "en-US",
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.96,
+        "text": "Tell me about artificial intelligence"
+      }
+    ],
+    "audio_duration_seconds": 2.96
+  },
+  {
+    "timestamp": "2025-08-16T11:00:22.103298",
+    "audio_file_path": "/tmp/tmpejslqhp0.wav",
+    "file_size_bytes": 133790,
+    "transcription_text": "Test one, test one, test one, test one, test two, memory.",
+    "confidence_score": 0.26079921722412114,
+    "processing_time_seconds": 1755363622.102608,
+    "word_count": 11,
+    "character_count": 57,
+    "language_detected": "en",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 4.0,
+        "text": " Test one, test one, test one, test one, test two, memory.",
+        "tokens": [
+          50364,
+          9279,
+          472,
+          11,
+          1500,
+          472,
+          11,
+          1500,
+          472,
+          11,
+          1500,
+          472,
+          11,
+          1500,
+          732,
+          11,
+          4675,
+          13,
+          50564
+        ],
+        "temperature": 0.0,
+        "avg_logprob": -0.7392007827758789,
+        "compression_ratio": 1.7272727272727273,
+        "no_speech_prob": 0.04857898876070976
+      }
+    ],
+    "audio_duration_seconds": 4.0
+  },
+  {
+    "timestamp": "2025-08-16T11:00:22.673469",
+    "audio_file_path": "/tmp/tmpejslqhp0.wav",
+    "file_size_bytes": 0,
+    "transcription_text": "Test one, test one, test one, test one, test two, memory.",
+    "confidence_score": 0.26079921722412114,
+    "processing_time_seconds": 1755363622.102608,
+    "word_count": 11,
+    "character_count": 57,
+    "language_detected": "en",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 4.0,
+        "text": " Test one, test one, test one, test one, test two, memory.",
+        "tokens": [
+          50364,
+          9279,
+          472,
+          11,
+          1500,
+          472,
+          11,
+          1500,
+          472,
+          11,
+          1500,
+          472,
+          11,
+          1500,
+          732,
+          11,
+          4675,
+          13,
+          50564
+        ],
+        "temperature": 0.0,
+        "avg_logprob": -0.7392007827758789,
+        "compression_ratio": 1.7272727272727273,
+        "no_speech_prob": 0.04857898876070976
+      }
+    ],
+    "audio_duration_seconds": 4.0
+  },
+  {
+    "timestamp": "2025-08-16T11:00:42.997793",
+    "audio_file_path": "/tmp/tmpqsv3m8ba.wav",
+    "file_size_bytes": 92552,
+    "transcription_text": "Jay correlate Okay...",
+    "confidence_score": 0.0,
+    "processing_time_seconds": 1755363642.9970508,
+    "word_count": 3,
+    "character_count": 21,
+    "language_detected": "en",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.68,
+        "end": 1.18,
+        "text": " Jay correlate",
+        "tokens": [
+          50398,
+          11146,
+          48742,
+          50423
+        ],
+        "temperature": 1.0,
+        "avg_logprob": -6.794901953803168,
+        "compression_ratio": 0.7241379310344828,
+        "no_speech_prob": 0.07875537872314453
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 3.34,
+        "end": 17.18,
+        "text": " Okay...",
+        "tokens": [
+          50531,
+          1033,
+          485,
+          51223
+        ],
+        "temperature": 1.0,
+        "avg_logprob": -6.794901953803168,
+        "compression_ratio": 0.7241379310344828,
+        "no_speech_prob": 0.07875537872314453
+      }
+    ],
+    "audio_duration_seconds": 17.18
+  }
+]

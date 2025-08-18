@@ -1,0 +1,22 @@
+{
+  "hey assistant": {
+    "total_detections": 7,
+    "confidence_scores": [
+      0.92,
+      0.88,
+      0.91,
+      0.91,
+      0.87,
+      0.87,
+      0.87
+    ],
+    "hourly_distribution": {
+      "09": 7
+    },
+    "daily_distribution": {
+      "Saturday": 7
+    },
+    "first_detected": "2025-08-16T09:16:27.440953",
+    "last_detected": "2025-08-16T09:33:03.236540"
+  }
+}

@@ -1,0 +1,592 @@
+[
+  {
+    "timestamp": "2025-08-16T13:22:08.775392",
+    "user": "The export data and view stats are not working in the voice memory management panel.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpaefvyq34.wav",
+      "confidence_score": 0.5842286662051552,
+      "audio_duration": 7.4651875,
+      "processing_time": 1755372128.7753687,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 7.0,
+          "text": " The export data and view stats are not working in the voice memory management panel.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            293,
+            1910,
+            18152,
+            366,
+            406,
+            1364,
+            294,
+            264,
+            3177,
+            4675,
+            4592,
+            4831,
+            13,
+            50714
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.41577133379484477,
+          "compression_ratio": 1.0909090909090908,
+          "no_speech_prob": 0.02432720921933651
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T13:22:10.852810",
+    "user": "The export data and view stats are not working in the voice memory management panel.",
+    "assistant": "The export data and view stats are not working in the voice memory management panel because the panel is not designed to display these features.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpaefvyq34.wav",
+      "confidence_score": 0.5842286662051552,
+      "audio_duration": 7.4651875,
+      "processing_time": 1755372128.7753687,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 7.0,
+          "text": " The export data and view stats are not working in the voice memory management panel.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            293,
+            1910,
+            18152,
+            366,
+            406,
+            1364,
+            294,
+            264,
+            3177,
+            4675,
+            4592,
+            4831,
+            13,
+            50714
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.41577133379484477,
+          "compression_ratio": 1.0909090909090908,
+          "no_speech_prob": 0.02432720921933651
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:11:58.481534",
+    "user": "The export data doesn't seem to be doing anything.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpz7t1lbfo.wav",
+      "confidence_score": 0.6333131790161133,
+      "audio_duration": 3.8080625,
+      "processing_time": 1755375118.4815116,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 3.5,
+          "text": " The export data doesn't seem to be doing anything.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            1177,
+            380,
+            1643,
+            281,
+            312,
+            884,
+            1340,
+            13,
+            50539
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.3666868209838867,
+          "compression_ratio": 0.9090909090909091,
+          "no_speech_prob": 0.029600709676742554
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:11:59.952625",
+    "user": "The export data doesn't seem to be doing anything.",
+    "assistant": "The export data is not doing anything because you haven't added any data to the spreadsheet.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpz7t1lbfo.wav",
+      "confidence_score": 0.6333131790161133,
+      "audio_duration": 3.8080625,
+      "processing_time": 1755375118.4815116,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 3.5,
+          "text": " The export data doesn't seem to be doing anything.",
+          "tokens": [
+            50364,
+            440,
+            10725,
+            1412,
+            1177,
+            380,
+            1643,
+            281,
+            312,
+            884,
+            1340,
+            13,
+            50539
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.3666868209838867,
+          "compression_ratio": 0.9090909090909091,
+          "no_speech_prob": 0.029600709676742554
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:54:59.885056",
+    "user": "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning docs, documentation, etc. Let's have the files need to be organized.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpgs3d1lk0.wav",
+      "confidence_score": 0.5177455155745796,
+      "audio_duration": 15.60375,
+      "processing_time": 1755377699.885028,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 8.24,
+          "text": " Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down,",
+          "tokens": [
+            50364,
+            2798,
+            11,
+            321,
+            643,
+            281,
+            2541,
+            493,
+            264,
+            21120,
+            11,
+            456,
+            311,
+            257,
+            3840,
+            295,
+            1266,
+            7098,
+            293,
+            257,
+            1491,
+            760,
+            11,
+            50776
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 8.24,
+          "end": 11.74,
+          "text": " planning docs, documentation, etc.",
+          "tokens": [
+            50776,
+            5038,
+            45623,
+            11,
+            14333,
+            11,
+            5183,
+            13,
+            50951
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 2,
+          "seek": 0,
+          "start": 11.74,
+          "end": 15.0,
+          "text": " Let's have the files need to be organized.",
+          "tokens": [
+            50951,
+            961,
+            311,
+            362,
+            264,
+            7098,
+            643,
+            281,
+            312,
+            9983,
+            13,
+            51114
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:55:02.137771",
+    "user": "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning docs, documentation, etc. Let's have the files need to be organized.",
+    "assistant": "Great, we'll need to create a new directory for the cleaned up files.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpgs3d1lk0.wav",
+      "confidence_score": 0.5177455155745796,
+      "audio_duration": 15.60375,
+      "processing_time": 1755377699.885028,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 8.24,
+          "text": " Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down,",
+          "tokens": [
+            50364,
+            2798,
+            11,
+            321,
+            643,
+            281,
+            2541,
+            493,
+            264,
+            21120,
+            11,
+            456,
+            311,
+            257,
+            3840,
+            295,
+            1266,
+            7098,
+            293,
+            257,
+            1491,
+            760,
+            11,
+            50776
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 8.24,
+          "end": 11.74,
+          "text": " planning docs, documentation, etc.",
+          "tokens": [
+            50776,
+            5038,
+            45623,
+            11,
+            14333,
+            11,
+            5183,
+            13,
+            50951
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 2,
+          "seek": 0,
+          "start": 11.74,
+          "end": 15.0,
+          "text": " Let's have the files need to be organized.",
+          "tokens": [
+            50951,
+            961,
+            311,
+            362,
+            264,
+            7098,
+            643,
+            281,
+            312,
+            9983,
+            13,
+            51114
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:59:40.994683",
+    "user": "What are all the temporary files for the dot temp files?",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpur90c1ed.wav",
+      "confidence_score": 0.512863286336263,
+      "audio_duration": 6.141625,
+      "processing_time": 1755377980.9946578,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 6.0,
+          "text": " What are all the temporary files for the dot temp files?",
+          "tokens": [
+            50364,
+            708,
+            366,
+            439,
+            264,
+            13413,
+            7098,
+            337,
+            264,
+            5893,
+            18274,
+            7098,
+            30,
+            50664
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48713671366373695,
+          "compression_ratio": 1.0566037735849056,
+          "no_speech_prob": 0.02161559835076332
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:59:41.994463",
+    "user": "What are all the temporary files for the dot temp files?",
+    "assistant": "The temporary files for the dot temp files are:",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpur90c1ed.wav",
+      "confidence_score": 0.512863286336263,
+      "audio_duration": 6.141625,
+      "processing_time": 1755377980.9946578,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 6.0,
+          "text": " What are all the temporary files for the dot temp files?",
+          "tokens": [
+            50364,
+            708,
+            366,
+            439,
+            264,
+            13413,
+            7098,
+            337,
+            264,
+            5893,
+            18274,
+            7098,
+            30,
+            50664
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48713671366373695,
+          "compression_ratio": 1.0566037735849056,
+          "no_speech_prob": 0.02161559835076332
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T15:38:32.067257",
+    "user": "What is the enable pattern learning analysis Do and working feature or just a mockup?",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmp_0gi5dpx.wav",
+      "confidence_score": 0.36173577742143115,
+      "audio_duration": 8.1618125,
+      "processing_time": 1755380312.0672338,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 5.0,
+          "text": " What is the enable pattern learning analysis",
+          "tokens": [
+            50364,
+            708,
+            307,
+            264,
+            9528,
+            5102,
+            2539,
+            5215,
+            50614
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 5.0,
+          "end": 8.0,
+          "text": " Do and working feature or just a mockup?",
+          "tokens": [
+            50614,
+            1144,
+            293,
+            1364,
+            4111,
+            420,
+            445,
+            257,
+            17362,
+            1010,
+            30,
+            50764
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T15:38:35.309751",
+    "user": "What is the enable pattern learning analysis Do and working feature or just a mockup?",
+    "assistant": "The enable pattern learning analysiS Do and working feature or just a mockup is a pattern learning analyS Do and working feature or just a mockup that is used to help you understand the concept of pattern learning analyS Do and working feature or",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmp_0gi5dpx.wav",
+      "confidence_score": 0.36173577742143115,
+      "audio_duration": 8.1618125,
+      "processing_time": 1755380312.0672338,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 5.0,
+          "text": " What is the enable pattern learning analysis",
+          "tokens": [
+            50364,
+            708,
+            307,
+            264,
+            9528,
+            5102,
+            2539,
+            5215,
+            50614
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 5.0,
+          "end": 8.0,
+          "text": " Do and working feature or just a mockup?",
+          "tokens": [
+            50614,
+            1144,
+            293,
+            1364,
+            4111,
+            420,
+            445,
+            257,
+            17362,
+            1010,
+            30,
+            50764
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        }
+      ]
+    }
+  }
+]
