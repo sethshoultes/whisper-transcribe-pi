@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Microphone Test</title>
+</head>
+<body>
+    <h1>Microphone Device Test</h1>
+    <select id="micSelect">
+        <option value="">--Select Microphone--</option>
+    </select>
+    <button id="testBtn">Test Selected Mic</button>
+    <div id="status"></div>
+    <canvas id="volumeMeter" width="300" height="50"></canvas>
+    
+    <script>
+        const micSelect = document.getElementById('micSelect');
+        const testBtn = document.getElementById('testBtn');
+        const status = document.getElementById('status');
+        const canvas = document.getElementById('volumeMeter');
+        const ctx = canvas.getContext('2d');
+        
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+        let animationId;
+        
+        // Get available audio devices
+        async function getDevices() {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
+            
+            micSelect.innerHTML = '<option value="">--Select Microphone--</option>';
+            audioInputs.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Microphone ${device.deviceId}`;
+                micSelect.appendChild(option);
+            });
+            
+            status.textContent = `Found ${audioInputs.length} microphone(s)`;
+        }
+        
+        // Test selected microphone
+        testBtn.onclick = async () => {
+            if (!micSelect.value) {
+                status.textContent = 'Please select a microphone';
+                return;
+            }
+            
+            try {
+                // Stop any existing audio
+                if (microphone) {
+                    microphone.disconnect();
+                    microphone = null;
+                }
+                if (audioContext) {
+                    audioContext.close();
+                }
+                
+                // Get audio stream from selected device
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        deviceId: { exact: micSelect.value },
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
+                
+                // Set up audio analysis
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+                
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+                
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+                
+                javascriptNode.onaudioprocess = function() {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    
+                    // Calculate average volume
+                    let values = 0;
+                    for (let i = 0; i < array.length; i++) {
+                        values += array[i];
+                    }
+                    const average = values / array.length;
+                    
+                    // Draw volume meter
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(0, 0, average * 2, 50);
+                    
+                    // Update status
+                    status.textContent = `Volume: ${Math.round(average)} / 128`;
+                }
+                
+                status.textContent = 'Microphone active - speak to see volume levels';
+                
+            } catch (err) {
+                console.error('Error:', err);
+                status.textContent = 'Error: ' + err.message;
+            }
+        };
+        
+        // Initialize
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
+            getDevices();
+        }).catch(err => {
+            status.textContent = 'Microphone permission denied';
+        });
+        
+        // Update device list when devices change
+        navigator.mediaDevices.ondevicechange = getDevices;
+    </script>
+</body>
+</html>

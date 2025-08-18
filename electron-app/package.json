@@ -1,0 +1,60 @@
+{
+  "name": "whisper-transcribe",
+  "version": "1.0.0",
+  "description": "Speech-to-text application using OpenAI Whisper",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dist": "electron-builder --mac",
+    "prebuild": "node create-bundle-env.js",
+    "predist": "node create-bundle-env.js",
+    "setup-python": "node create-bundle-env.js",
+    "install-all": "node installer.js",
+    "clean": "rm -rf dist python-bundle node_modules/.cache install.log"
+  },
+  "author": "Whisper Transcribe",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "build": {
+    "appId": "com.whispertranscribe.app",
+    "productName": "Whisper Transcribe",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "../icons/whisper-icon-512.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Whisper Transcribe needs access to your microphone to record and transcribe speech."
+      }
+    },
+    "extraResources": [
+      {
+        "from": "python-bundle",
+        "to": "python-bundle",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "dependency-manager.js",
+        "to": "dependency-manager.js"
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# Flask backend requirements for Whisper Transcribe
+# Based on parent requirements.txt with Flask additions
+
+# Core Whisper and audio processing
+openai-whisper>=20230314
+sounddevice>=0.4.6
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Flask web server
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# System monitoring (for model recommendations)
+psutil>=5.9.0
+
+# Optional: Better performance
+# torch>=2.0.0  # For GPU acceleration if available

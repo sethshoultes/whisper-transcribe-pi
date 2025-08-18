@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Recording Test</title>
+</head>
+<body>
+    <h1>Audio Recording Debug Test</h1>
+    <button id="start">Start Recording</button>
+    <button id="stop" disabled>Stop Recording</button>
+    <div id="status"></div>
+    <audio id="audio" controls></audio>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        const startBtn = document.getElementById('start');
+        const stopBtn = document.getElementById('stop');
+        const status = document.getElementById('status');
+        const audioElement = document.getElementById('audio');
+
+        startBtn.onclick = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Test different mime types
+                const mimeTypes = [
+                    'audio/webm;codecs=opus',
+                    'audio/webm',
+                    'audio/ogg;codecs=opus',
+                    'audio/ogg',
+                    'audio/mp4',
+                    ''
+                ];
+                
+                let mimeType = '';
+                for (const type of mimeTypes) {
+                    if (type === '' || MediaRecorder.isTypeSupported(type)) {
+                        mimeType = type;
+                        break;
+                    }
+                }
+                
+                status.textContent = `Using mime type: ${mimeType || 'default'}`;
+                
+                mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    console.log('Data available:', event.data.size);
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    console.log('Recording stopped, chunks:', audioChunks.length);
+                    const audioBlob = new Blob(audioChunks);
+                    console.log('Blob size:', audioBlob.size);
+                    
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioElement.src = audioUrl;
+                    
+                    status.textContent += ` | Recorded ${audioBlob.size} bytes`;
+                };
+                
+                mediaRecorder.start();
+                console.log('Recording started');
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+            } catch (err) {
+                console.error('Error:', err);
+                status.textContent = 'Error: ' + err.message;
+            }
+        };
+        
+        stopBtn.onclick = () => {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        };
+    </script>
+</body>
+</html>

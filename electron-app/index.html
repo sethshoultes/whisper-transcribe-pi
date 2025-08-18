@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:5001 http://localhost:5001;">
+    <title>Whisper Transcribe</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+        }
+        
+        #status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        #transcription-area {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #record-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #record-btn:hover {
+            background-color: #45a049;
+        }
+        
+        #record-btn.recording {
+            background-color: #f44336;
+        }
+        
+        #record-btn.recording:hover {
+            background-color: #da190b;
+        }
+        
+        #copy-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        #copy-btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        #clear-btn {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        #clear-btn:hover {
+            background-color: #e68900;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Whisper Transcribe</h1>
+        
+        <div id="status">Loading Whisper model...</div>
+        
+        <div id="progress-container" style="margin: 10px 0; display: none;">
+            <div style="background-color: #e0e0e0; border-radius: 10px; height: 20px; overflow: hidden;">
+                <div id="progress-bar" style="background-color: #2196F3; height: 100%; width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+                    <span id="progress-text"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="audio-visualizer" style="display: none; margin-bottom: 15px;">
+            <canvas id="audio-canvas" width="560" height="60" style="width: 100%; height: 60px; background: #f0f0f0; border-radius: 5px;"></canvas>
+        </div>
+        
+        <textarea id="transcription-area" placeholder="Your transcriptions will appear here..." readonly></textarea>
+        
+        <div class="button-container">
+            <button id="record-btn" disabled>Start Recording</button>
+            <button id="copy-btn">Copy All</button>
+            <button id="clear-btn">Clear</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+    
+    <script src="renderer.js"></script>
+</body>
+</html>
