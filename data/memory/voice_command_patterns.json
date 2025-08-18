@@ -162,14 +162,16 @@
     "intent": "transcription_request",
     "average_word_count": 11,
     "examples": [
-      "Test one, test one, test one, test one, test two, memory."
+      "Test one, test one, test one, test one, test two, memory.",
+      "What are all the temporary files for the dot temp files?"
     ],
-    "frequency": 1,
+    "frequency": 2,
     "confidence_scores": [
-      0.26079921722412114
+      0.26079921722412114,
+      0.512863286336263
     ],
     "first_seen": "2025-08-16T11:00:22.713002",
-    "last_seen": "2025-08-16T11:00:22.713002"
+    "last_seen": "2025-08-16T14:59:42.027653"
   },
   "transcription_request_3_words": {
     "intent": "transcription_request",
@@ -395,13 +397,67 @@
     "intent": "transcription_request",
     "average_word_count": 15,
     "examples": [
-      "The export data and view stats are not working in the voice memory management panel."
+      "The export data and view stats are not working in the voice memory management panel.",
+      "What is the enable pattern learning analysis Do and working feature or just a mockup?"
+    ],
+    "frequency": 2,
+    "confidence_scores": [
+      0.5842286662051552,
+      0.36173577742143115
+    ],
+    "first_seen": "2025-08-16T13:22:10.886213",
+    "last_seen": "2025-08-16T15:38:35.351743"
+  },
+  "general_30_words": {
+    "intent": "general",
+    "average_word_count": 20,
+    "examples": [
+      "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning do"
     ],
     "frequency": 1,
     "confidence_scores": [
-      0.5842286662051552
+      0.5177455155745796
     ],
-    "first_seen": "2025-08-16T13:22:10.886213",
-    "last_seen": "2025-08-16T13:22:10.886213"
+    "first_seen": "2025-08-16T14:54:59.923792",
+    "last_seen": "2025-08-16T14:54:59.923792"
+  },
+  "transcription_request_30_words": {
+    "intent": "transcription_request",
+    "average_word_count": 20,
+    "examples": [
+      "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning do"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.5177455155745796
+    ],
+    "first_seen": "2025-08-16T14:55:02.176985",
+    "last_seen": "2025-08-16T14:55:02.176985"
+  },
+  "question_11_words": {
+    "intent": "question",
+    "average_word_count": 11,
+    "examples": [
+      "What are all the temporary files for the dot temp files?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.512863286336263
+    ],
+    "first_seen": "2025-08-16T14:59:41.033741",
+    "last_seen": "2025-08-16T14:59:41.033741"
+  },
+  "question_15_words": {
+    "intent": "question",
+    "average_word_count": 15,
+    "examples": [
+      "What is the enable pattern learning analysis Do and working feature or just a mockup?"
+    ],
+    "frequency": 1,
+    "confidence_scores": [
+      0.36173577742143115
+    ],
+    "first_seen": "2025-08-16T15:38:32.105590",
+    "last_seen": "2025-08-16T15:38:32.105590"
   }
 }

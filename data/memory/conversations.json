@@ -1,533 +1,5 @@
 [
   {
-    "timestamp": "2025-08-16T12:38:13.073214",
-    "user": "What happened to the memory page? No changes you made made look like shit. Everything runs off the page. I still can't scroll very well without using the scroll bar. I can't use the mouse wheel to scroll.",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmp50hlu6ys.wav",
-      "confidence_score": 0.5814417430332729,
-      "audio_duration": 16.12625,
-      "processing_time": 1755369493.0731902,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.8000000000000003,
-          "text": " What happened to the memory page?",
-          "tokens": [
-            50364,
-            708,
-            2011,
-            281,
-            264,
-            4675,
-            3028,
-            30,
-            50504
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 1,
-          "seek": 0,
-          "start": 2.8000000000000003,
-          "end": 4.9,
-          "text": " No changes you made made look like shit.",
-          "tokens": [
-            50504,
-            883,
-            2962,
-            291,
-            1027,
-            1027,
-            574,
-            411,
-            4611,
-            13,
-            50609
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 2,
-          "seek": 0,
-          "start": 4.9,
-          "end": 6.9,
-          "text": " Everything runs off the page.",
-          "tokens": [
-            50609,
-            5471,
-            6676,
-            766,
-            264,
-            3028,
-            13,
-            50709
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 3,
-          "seek": 0,
-          "start": 6.9,
-          "end": 12.5,
-          "text": " I still can't scroll very well without using the scroll bar.",
-          "tokens": [
-            50709,
-            286,
-            920,
-            393,
-            380,
-            11369,
-            588,
-            731,
-            1553,
-            1228,
-            264,
-            11369,
-            2159,
-            13,
-            50989
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 4,
-          "seek": 0,
-          "start": 12.5,
-          "end": 15.5,
-          "text": " I can't use the mouse wheel to scroll.",
-          "tokens": [
-            50989,
-            286,
-            393,
-            380,
-            764,
-            264,
-            9719,
-            5589,
-            281,
-            11369,
-            13,
-            51139
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T12:38:17.267854",
-    "user": "What happened to the memory page? No changes you made made look like shit. Everything runs off the page. I still can't scroll very well without using the scroll bar. I can't use the mouse wheel to scroll.",
-    "assistant": "The memory page is a virtual memory page that is used to store the data that is not currently in use. When you use the scroll bar, the virtual memory page is used to store the data that is currently being scrolled. When you scroll,",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmp50hlu6ys.wav",
-      "confidence_score": 0.5814417430332729,
-      "audio_duration": 16.12625,
-      "processing_time": 1755369493.0731902,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 2.8000000000000003,
-          "text": " What happened to the memory page?",
-          "tokens": [
-            50364,
-            708,
-            2011,
-            281,
-            264,
-            4675,
-            3028,
-            30,
-            50504
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 1,
-          "seek": 0,
-          "start": 2.8000000000000003,
-          "end": 4.9,
-          "text": " No changes you made made look like shit.",
-          "tokens": [
-            50504,
-            883,
-            2962,
-            291,
-            1027,
-            1027,
-            574,
-            411,
-            4611,
-            13,
-            50609
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 2,
-          "seek": 0,
-          "start": 4.9,
-          "end": 6.9,
-          "text": " Everything runs off the page.",
-          "tokens": [
-            50609,
-            5471,
-            6676,
-            766,
-            264,
-            3028,
-            13,
-            50709
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 3,
-          "seek": 0,
-          "start": 6.9,
-          "end": 12.5,
-          "text": " I still can't scroll very well without using the scroll bar.",
-          "tokens": [
-            50709,
-            286,
-            920,
-            393,
-            380,
-            11369,
-            588,
-            731,
-            1553,
-            1228,
-            264,
-            11369,
-            2159,
-            13,
-            50989
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        },
-        {
-          "id": 4,
-          "seek": 0,
-          "start": 12.5,
-          "end": 15.5,
-          "text": " I can't use the mouse wheel to scroll.",
-          "tokens": [
-            50989,
-            286,
-            393,
-            380,
-            764,
-            264,
-            9719,
-            5589,
-            281,
-            11369,
-            13,
-            51139
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4185582569667271,
-          "compression_ratio": 1.4265734265734267,
-          "no_speech_prob": 0.028025085106492043
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T13:04:59.661412",
-    "user": "Hello testing 1, 2, 3 testing 1, 2, 3",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpwy7mvatr.wav",
-      "confidence_score": 0.5694580078125,
-      "audio_duration": 3.8545,
-      "processing_time": 1755371099.6613553,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 4.0,
-          "text": " Hello testing 1, 2, 3 testing 1, 2, 3",
-          "tokens": [
-            50364,
-            2425,
-            4997,
-            502,
-            11,
-            568,
-            11,
-            805,
-            4997,
-            502,
-            11,
-            568,
-            11,
-            805,
-            50564
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4305419921875,
-          "compression_ratio": 1.1935483870967742,
-          "no_speech_prob": 0.28820154070854187
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T13:05:03.422079",
-    "user": "Hello testing 1, 2, 3 testing 1, 2, 3",
-    "assistant": "Hello testing 1, 2, 3 testing 1, 2, 3",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpwy7mvatr.wav",
-      "confidence_score": 0.5694580078125,
-      "audio_duration": 3.8545,
-      "processing_time": 1755371099.6613553,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 4.0,
-          "text": " Hello testing 1, 2, 3 testing 1, 2, 3",
-          "tokens": [
-            50364,
-            2425,
-            4997,
-            502,
-            11,
-            568,
-            11,
-            805,
-            4997,
-            502,
-            11,
-            568,
-            11,
-            805,
-            50564
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.4305419921875,
-          "compression_ratio": 1.1935483870967742,
-          "no_speech_prob": 0.28820154070854187
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T13:05:36.247803",
-    "user": "The memory is taking a long time, especially when there's a lot of messages in there. There's no way to delete messages and we probably should end paging to messages as well.",
-    "assistant": "",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpy1w138y_.wav",
-      "confidence_score": 0.7536022496777912,
-      "audio_duration": 12.22525,
-      "processing_time": 1755371136.2477744,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 5.0,
-          "text": " The memory is taking a long time, especially when there's a lot of messages in there.",
-          "tokens": [
-            50364,
-            440,
-            4675,
-            307,
-            1940,
-            257,
-            938,
-            565,
-            11,
-            2318,
-            562,
-            456,
-            311,
-            257,
-            688,
-            295,
-            7897,
-            294,
-            456,
-            13,
-            50614
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.24639775032220884,
-          "compression_ratio": 1.4262295081967213,
-          "no_speech_prob": 0.018573420122265816
-        },
-        {
-          "id": 1,
-          "seek": 0,
-          "start": 5.0,
-          "end": 11.0,
-          "text": " There's no way to delete messages and we probably should end paging to messages as well.",
-          "tokens": [
-            50614,
-            821,
-            311,
-            572,
-            636,
-            281,
-            12097,
-            7897,
-            293,
-            321,
-            1391,
-            820,
-            917,
-            280,
-            3568,
-            281,
-            7897,
-            382,
-            731,
-            13,
-            50914
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.24639775032220884,
-          "compression_ratio": 1.4262295081967213,
-          "no_speech_prob": 0.018573420122265816
-        }
-      ]
-    }
-  },
-  {
-    "timestamp": "2025-08-16T13:05:42.306430",
-    "user": "The memory is taking a long time, especially when there's a lot of messages in there. There's no way to delete messages and we probably should end paging to messages as well.",
-    "assistant": "Yes, that's a common issue. The memory usage is a result of the fact that the app is using a lot of memory to store the messages. This is because the app is using a lot of memory to store the messages, and it",
-    "context_objects": [],
-    "interaction_type": "voice",
-    "audio_metadata": {
-      "audio_file_path": "/tmp/tmpy1w138y_.wav",
-      "confidence_score": 0.7536022496777912,
-      "audio_duration": 12.22525,
-      "processing_time": 1755371136.2477744,
-      "language": "en",
-      "segments": [
-        {
-          "id": 0,
-          "seek": 0,
-          "start": 0.0,
-          "end": 5.0,
-          "text": " The memory is taking a long time, especially when there's a lot of messages in there.",
-          "tokens": [
-            50364,
-            440,
-            4675,
-            307,
-            1940,
-            257,
-            938,
-            565,
-            11,
-            2318,
-            562,
-            456,
-            311,
-            257,
-            688,
-            295,
-            7897,
-            294,
-            456,
-            13,
-            50614
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.24639775032220884,
-          "compression_ratio": 1.4262295081967213,
-          "no_speech_prob": 0.018573420122265816
-        },
-        {
-          "id": 1,
-          "seek": 0,
-          "start": 5.0,
-          "end": 11.0,
-          "text": " There's no way to delete messages and we probably should end paging to messages as well.",
-          "tokens": [
-            50614,
-            821,
-            311,
-            572,
-            636,
-            281,
-            12097,
-            7897,
-            293,
-            321,
-            1391,
-            820,
-            917,
-            280,
-            3568,
-            281,
-            7897,
-            382,
-            731,
-            13,
-            50914
-          ],
-          "temperature": 0.0,
-          "avg_logprob": -0.24639775032220884,
-          "compression_ratio": 1.4262295081967213,
-          "no_speech_prob": 0.018573420122265816
-        }
-      ]
-    }
-  },
-  {
     "timestamp": "2025-08-16T13:22:08.775392",
     "user": "The export data and view stats are not working in the voice memory management panel.",
     "assistant": "",
@@ -701,6 +173,418 @@
           "avg_logprob": -0.3666868209838867,
           "compression_ratio": 0.9090909090909091,
           "no_speech_prob": 0.029600709676742554
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:54:59.885056",
+    "user": "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning docs, documentation, etc. Let's have the files need to be organized.",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpgs3d1lk0.wav",
+      "confidence_score": 0.5177455155745796,
+      "audio_duration": 15.60375,
+      "processing_time": 1755377699.885028,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 8.24,
+          "text": " Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down,",
+          "tokens": [
+            50364,
+            2798,
+            11,
+            321,
+            643,
+            281,
+            2541,
+            493,
+            264,
+            21120,
+            11,
+            456,
+            311,
+            257,
+            3840,
+            295,
+            1266,
+            7098,
+            293,
+            257,
+            1491,
+            760,
+            11,
+            50776
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 8.24,
+          "end": 11.74,
+          "text": " planning docs, documentation, etc.",
+          "tokens": [
+            50776,
+            5038,
+            45623,
+            11,
+            14333,
+            11,
+            5183,
+            13,
+            50951
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 2,
+          "seek": 0,
+          "start": 11.74,
+          "end": 15.0,
+          "text": " Let's have the files need to be organized.",
+          "tokens": [
+            50951,
+            961,
+            311,
+            362,
+            264,
+            7098,
+            643,
+            281,
+            312,
+            9983,
+            13,
+            51114
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:55:02.137771",
+    "user": "Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down, planning docs, documentation, etc. Let's have the files need to be organized.",
+    "assistant": "Great, we'll need to create a new directory for the cleaned up files.",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpgs3d1lk0.wav",
+      "confidence_score": 0.5177455155745796,
+      "audio_duration": 15.60375,
+      "processing_time": 1755377699.885028,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 8.24,
+          "text": " Alright, we need to clean up the directory, there's a bunch of 10 files and a mark down,",
+          "tokens": [
+            50364,
+            2798,
+            11,
+            321,
+            643,
+            281,
+            2541,
+            493,
+            264,
+            21120,
+            11,
+            456,
+            311,
+            257,
+            3840,
+            295,
+            1266,
+            7098,
+            293,
+            257,
+            1491,
+            760,
+            11,
+            50776
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 8.24,
+          "end": 11.74,
+          "text": " planning docs, documentation, etc.",
+          "tokens": [
+            50776,
+            5038,
+            45623,
+            11,
+            14333,
+            11,
+            5183,
+            13,
+            50951
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        },
+        {
+          "id": 2,
+          "seek": 0,
+          "start": 11.74,
+          "end": 15.0,
+          "text": " Let's have the files need to be organized.",
+          "tokens": [
+            50951,
+            961,
+            311,
+            362,
+            264,
+            7098,
+            643,
+            281,
+            312,
+            9983,
+            13,
+            51114
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48225448442542035,
+          "compression_ratio": 1.2769230769230768,
+          "no_speech_prob": 0.02106599323451519
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:59:40.994683",
+    "user": "What are all the temporary files for the dot temp files?",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpur90c1ed.wav",
+      "confidence_score": 0.512863286336263,
+      "audio_duration": 6.141625,
+      "processing_time": 1755377980.9946578,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 6.0,
+          "text": " What are all the temporary files for the dot temp files?",
+          "tokens": [
+            50364,
+            708,
+            366,
+            439,
+            264,
+            13413,
+            7098,
+            337,
+            264,
+            5893,
+            18274,
+            7098,
+            30,
+            50664
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48713671366373695,
+          "compression_ratio": 1.0566037735849056,
+          "no_speech_prob": 0.02161559835076332
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T14:59:41.994463",
+    "user": "What are all the temporary files for the dot temp files?",
+    "assistant": "The temporary files for the dot temp files are:",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmpur90c1ed.wav",
+      "confidence_score": 0.512863286336263,
+      "audio_duration": 6.141625,
+      "processing_time": 1755377980.9946578,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 6.0,
+          "text": " What are all the temporary files for the dot temp files?",
+          "tokens": [
+            50364,
+            708,
+            366,
+            439,
+            264,
+            13413,
+            7098,
+            337,
+            264,
+            5893,
+            18274,
+            7098,
+            30,
+            50664
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.48713671366373695,
+          "compression_ratio": 1.0566037735849056,
+          "no_speech_prob": 0.02161559835076332
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T15:38:32.067257",
+    "user": "What is the enable pattern learning analysis Do and working feature or just a mockup?",
+    "assistant": "",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmp_0gi5dpx.wav",
+      "confidence_score": 0.36173577742143115,
+      "audio_duration": 8.1618125,
+      "processing_time": 1755380312.0672338,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 5.0,
+          "text": " What is the enable pattern learning analysis",
+          "tokens": [
+            50364,
+            708,
+            307,
+            264,
+            9528,
+            5102,
+            2539,
+            5215,
+            50614
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 5.0,
+          "end": 8.0,
+          "text": " Do and working feature or just a mockup?",
+          "tokens": [
+            50614,
+            1144,
+            293,
+            1364,
+            4111,
+            420,
+            445,
+            257,
+            17362,
+            1010,
+            30,
+            50764
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        }
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T15:38:35.309751",
+    "user": "What is the enable pattern learning analysis Do and working feature or just a mockup?",
+    "assistant": "The enable pattern learning analysiS Do and working feature or just a mockup is a pattern learning analyS Do and working feature or just a mockup that is used to help you understand the concept of pattern learning analyS Do and working feature or",
+    "context_objects": [],
+    "interaction_type": "voice",
+    "audio_metadata": {
+      "audio_file_path": "/tmp/tmp_0gi5dpx.wav",
+      "confidence_score": 0.36173577742143115,
+      "audio_duration": 8.1618125,
+      "processing_time": 1755380312.0672338,
+      "language": "en",
+      "segments": [
+        {
+          "id": 0,
+          "seek": 0,
+          "start": 0.0,
+          "end": 5.0,
+          "text": " What is the enable pattern learning analysis",
+          "tokens": [
+            50364,
+            708,
+            307,
+            264,
+            9528,
+            5102,
+            2539,
+            5215,
+            50614
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
+        },
+        {
+          "id": 1,
+          "seek": 0,
+          "start": 5.0,
+          "end": 8.0,
+          "text": " Do and working feature or just a mockup?",
+          "tokens": [
+            50614,
+            1144,
+            293,
+            1364,
+            4111,
+            420,
+            445,
+            257,
+            17362,
+            1010,
+            30,
+            50764
+          ],
+          "temperature": 0.0,
+          "avg_logprob": -0.6382642225785689,
+          "compression_ratio": 1.0493827160493827,
+          "no_speech_prob": 0.011258339509367943
         }
       ]
     }
