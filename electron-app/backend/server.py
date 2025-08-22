@@ -13,6 +13,7 @@ import logging
 from datetime import datetime
 import time
 import sys
+import shutil
 try:
     from model_config import WHISPER_MODELS, get_recommended_model
 except ImportError:
@@ -191,6 +192,10 @@ def transcribe():
         return jsonify({"error": "Model still loading, please wait..."}), 503
     
     try:
+        # Debug environment
+        logging.debug(f"PATH environment: {os.environ.get('PATH', 'Not set')}")
+        logging.debug(f"Current working directory: {os.getcwd()}")
+        
         logging.debug(f"Received request: {request.method} {request.path}")
         logging.debug(f"Request headers: {dict(request.headers)}")
         logging.debug(f"Request files: {request.files}")
@@ -221,9 +226,57 @@ def transcribe():
         # Convert webm to wav using ffmpeg
         wav_path = tmp_path.replace('.webm', '.wav')
         try:
+            # Try multiple methods to find ffmpeg
+            ffmpeg_path = None
+            
+            # Method 1: Check common installation paths
+            common_paths = [
+                '/usr/local/bin/ffmpeg',
+                '/opt/homebrew/bin/ffmpeg',  # Homebrew on Apple Silicon
+                '/usr/bin/ffmpeg',
+                '/opt/local/bin/ffmpeg',  # MacPorts
+            ]
+            
+            for path in common_paths:
+                if os.path.exists(path) and os.access(path, os.X_OK):
+                    ffmpeg_path = path
+                    logging.debug(f"Found ffmpeg at: {path}")
+                    break
+            
+            # Method 2: Use shutil.which with expanded PATH
+            if not ffmpeg_path:
+                # Create an expanded PATH that includes common locations
+                expanded_path = os.environ.get('PATH', '')
+                extra_paths = ['/usr/local/bin', '/opt/homebrew/bin', '/usr/bin', '/opt/local/bin']
+                for extra_path in extra_paths:
+                    if extra_path not in expanded_path:
+                        expanded_path = f"{extra_path}:{expanded_path}"
+                
+                # Create a custom environment with expanded PATH
+                env = os.environ.copy()
+                env['PATH'] = expanded_path
+                
+                # Try to find ffmpeg using which
+                ffmpeg_path = shutil.which('ffmpeg', path=expanded_path)
+                if ffmpeg_path:
+                    logging.debug(f"Found ffmpeg via which: {ffmpeg_path}")
+            
+            if not ffmpeg_path:
+                # Log what we tried
+                logging.error(f"FFmpeg not found. Searched paths: {common_paths}")
+                logging.error(f"PATH environment: {os.environ.get('PATH', 'Not set')}")
+                logging.error(f"Expanded PATH: {expanded_path}")
+                raise FileNotFoundError("FFmpeg not found in any expected location")
+            
+            logging.debug(f"Running ffmpeg command: {ffmpeg_path} -i {tmp_path} -ar 16000 -ac 1 -f wav {wav_path}")
+            
+            # Run with expanded PATH environment
+            env = os.environ.copy()
+            env['PATH'] = f"/usr/local/bin:/opt/homebrew/bin:{env.get('PATH', '')}"
+            
             result = subprocess.run([
-                'ffmpeg', '-i', tmp_path, '-ar', '16000', '-ac', '1', '-f', 'wav', wav_path
-            ], check=True, capture_output=True, text=True)
+                ffmpeg_path, '-i', tmp_path, '-ar', '16000', '-ac', '1', '-f', 'wav', wav_path
+            ], check=True, capture_output=True, text=True, env=env)
             logging.debug(f"FFmpeg conversion successful")
             if result.stderr:
                 logging.debug(f"FFmpeg stderr: {result.stderr}")
@@ -233,10 +286,11 @@ def transcribe():
             logging.error(f"FFmpeg stdout: {e.stdout}")
             os.remove(tmp_path)
             return jsonify({"error": f"Audio conversion failed: {e.stderr}"}), 500
-        except FileNotFoundError:
-            logging.error("FFmpeg not found. Please install ffmpeg.")
+        except FileNotFoundError as e:
+            logging.error(f"FFmpeg not found: {e}")
+            logging.error(f"Searched paths: {common_paths}")
             os.remove(tmp_path)
-            return jsonify({"error": "FFmpeg not installed"}), 500
+            return jsonify({"error": f"FFmpeg not found. Searched: {', '.join(common_paths)}. PATH: {os.environ.get('PATH', 'Not set')}"}), 500
         
         # Debug: Save files for inspection
         import shutil

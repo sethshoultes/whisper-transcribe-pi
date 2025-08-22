@@ -51,7 +51,17 @@ function startPythonBackend() {
     log(`Starting Python backend: ${pythonPath} ${scriptPath}`);
 
     try {
-      pythonProcess = spawn(pythonPath, [scriptPath]);
+      // Add common binary paths to environment
+      const env = Object.assign({}, process.env);
+      const extraPaths = ['/usr/local/bin', '/opt/homebrew/bin', '/usr/bin', '/opt/local/bin'];
+      const currentPath = env.PATH || '';
+      const pathSet = new Set(currentPath.split(':').filter(p => p));
+      extraPaths.forEach(p => pathSet.add(p));
+      env.PATH = Array.from(pathSet).join(':');
+      
+      log(`Spawning Python with PATH: ${env.PATH}`);
+      
+      pythonProcess = spawn(pythonPath, [scriptPath], { env });
 
     pythonProcess.stdout.on('data', (data) => {
       log(`Python: ${data}`);
